@@ -47,3 +47,22 @@ variable "db_password" {
   description = "Master password stored in AWS Secrets Manager for RDS & RDS Proxy"
 }
 
+variable "github_repository" {
+  type        = string
+  default     = "ULYBR/backend-challenge"
+  description = "GitHub repository identifier in owner/repo format for OIDC trust"
+}
+
+variable "domain_name" {
+  type        = string
+  default     = ""
+  description = "Optional custom root domain for Route53 and ACM (e.g., example.com)"
+}
+
+variable "api_subdomain" {
+  type        = string
+  default     = "api"
+  description = "Subdomain prefix for the public wagering API (e.g., api.example.com)"
+}
+
+
