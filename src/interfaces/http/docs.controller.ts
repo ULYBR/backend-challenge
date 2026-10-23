@@ -1,5 +1,5 @@
-import { join } from "node:path";
-import { Controller, Get, Res } from "@nestjs/common";
+import { basename, join } from "node:path";
+import { Controller, Get, Param, Res } from "@nestjs/common";
 import type { Response } from "express";
 
 const SCHEMAS = {
@@ -301,20 +301,7 @@ const PUBLIC_PATHS = {
       summary: "Open a new player wallet",
       description: `Creates a new player wallet with positive initialBalance, initializing an OPENING transaction and genesis ledger entry at version 1.
 
-\`\`\`
-[Game Provider / Partner]         [Wagering API Gateway]          [Core Financial Ledger]
-         │                                │                                │
-         │─── POST /v1/api/wallets ──────>│                                │
-         │    (playerId, currency,        │─── Validate Schema & Currency ─│
-         │     initialBalance)            │                                │
-         │                                │─── Genesis Opening Request ───>│
-         │                                │    • Assert Player Uniqueness  │
-         │                                │    • Initialize Zero-Balance   │
-         │                                │    • Credit Opening Balance    │
-         │                                │<── Wallet Opened (v1) ─────────│
-         │<── 201 Created ────────────────│                                │
-         │    {id, balance: "500.00"}     │                                │
-\`\`\``,
+![Fluxo de Sequência da Abertura de Carteira](/v1/api/docs/diagrams/wallet-flow.svg)`,
       operationId: "openWallet",
       requestBody: {
         required: true,
@@ -486,22 +473,7 @@ const PUBLIC_PATHS = {
       summary: "List immutable wallet ledger entries",
       description: `Extracts immutable append-only ledger entries using deterministic base64 keyset cursor pagination over (createdAt, id).
 
-\`\`\`
-[Auditor / Partner]               [Wagering API Gateway]          [Core Financial Ledger]
-         │                                │                                │
-         │─── GET /wallets/:id/ledger ───>│                                │
-         │    ?cursor=eyJ...&limit=20     │─── Decode Keyset Cursor ───────│
-         │                                │    (timestamp, entryId)        │
-         │                                │                                │
-         │                                │─── Fetch Ledger Page ─────────>│
-         │                                │    • Filter by Target Wallet   │
-         │                                │    • Keyset Window (limit + 1) │
-         │                                │<── Ledger Entries Record Set ──│
-         │                                │                                │
-         │                                │─── Compute Opaque Next Cursor ─│
-         │<── 200 OK ─────────────────────│                                │
-         │    {entries, nextCursor}       │                                │
-\`\`\``,
+![Fluxo de Paginação do Razão](/v1/api/docs/diagrams/ledger-flow.svg)`,
       operationId: "listWalletLedger",
       parameters: [
         {
@@ -600,44 +572,7 @@ const PUBLIC_PATHS = {
       summary: "Process a wagering transaction (BET, WIN, LOSS, REFUND, ROLLBACK)",
       description: `Processes financial betting operations (BET, WIN, LOSS, REFUND, ROLLBACK) with persistent idempotency, pessimistic row-level locking, append-only ledger entries, transactional outbox events, and out-of-order pending reference resolution.
 
-### Primary Financial Transaction Lifecycle
-\`\`\`
-[Game Provider / Partner]         [Wagering API Gateway]          [Core Financial Engine]
-         │                                │                                │
-         │─── POST /transactions ────────>│                                │
-         │    (Idempotency-Key,           │─── Rate Limit & Auth Check ────│
-         │     kind: BET, amount)         │─── Canonical Signature Hash ───│
-         │                                │                                │
-         │                                │─── Check Idempotency Record ──>│
-         │                                │<── [Hit]: Replay Result ───────│
-         │<── 200 OK (Idempotent Replay) ─│    (If payload differs: 409)   │
-         │                                │                                │
-         │                                │─── [Miss]: Authorize & Settle ─>│
-         │                                │    • Lock Wallet Concurrently  │
-         │                                │    • Validate Funds & Currency │
-         │                                │    • Mutate Balance Atomically │
-         │                                │    • Append Immutable Ledger   │
-         │                                │<── Transaction Finalized ──────│
-         │<── 201 Created (PROCESSED) ────│                                │
-         │    {id, balance, version: 2}   │                                │
-\`\`\`
-
-### Out-of-Order Reversal Handling (REFUND / ROLLBACK before BET)
-\`\`\`
-[Game Provider / Partner]         [Wagering API Gateway]          [Core Financial Engine]
-         │                                │                                │
-         │─── POST tx (REFUND) ──────────>│                                │
-         │    (ref: BET-EXT-99)           │─── Check Referenced Bet ──────>│
-         │                                │<── Not Found (Arrived Early) ──│
-         │                                │                                │
-         │                                │─── Register Pending Reference ─>│
-         │<── 202 Accepted ───────────────│                                │
-         │    (status: PENDING_REFERENCE) │                                │
-         │                                │    [Asynchronous Resolution]   │
-         │                                │    When BET arrives, Engine    │
-         │                                │    settles REFUND debit        │
-         │                                │    automatically in background │
-\`\`\``,
+![Fluxo de Transação Financeira](/v1/api/docs/diagrams/wagering-flow.svg)`,
       operationId: "processWagerTransaction",
       headers: {
         "X-Provider-Id": {
@@ -1089,79 +1024,18 @@ const PRIVATE_PATHS = {
     ...PUBLIC_PATHS["/v1/api/wagering/transactions"],
     post: {
       ...PUBLIC_PATHS["/v1/api/wagering/transactions"].post,
-      description: `Internal and operational view of the wagering transaction execution pipeline. Details row-level pessimistic locking, append-only ledger mutation, outbox event persistence, and asynchronous worker dispatch.
+      description: `Internal and operational view of the Primary ACID Execution Pipeline (White-Box Internal Architecture). Details row-level pessimistic locking via SELECT wallet FOR UPDATE, append-only ledger mutation, outbox event persistence in outbox_messages, and asynchronous worker dispatch via FOR UPDATE SKIP LOCKED.
 
-### Primary ACID Execution Pipeline (White-Box Internal Architecture)
-\`\`\`
-[Partner Game Provider]          [API Gateway]                 [PostgreSQL Engine]              [Outbox Publisher]      [SQS FIFO]
-         │                             │                                │                                │                  │
-         │─── POST /transactions ─────>│                                │                                │                  │
-         │    (idempotencyKey, BET)    │─── Check Rate Limit Quota ─────│                                │                  │
-         │                             │─── Compute Canonical SHA-256 ──│                                │                  │
-         │                             │                                │                                │                  │
-         │                             │─── Check Existing Idempotency >│                                │                  │
-         │                             │<── Match? Replay 200 / 409 ────│                                │                  │
-         │                             │                                │                                │                  │
-         │                             │─── BEGIN TRANSACTION ─────────>│                                │                  │
-         │                             │    SELECT wallet FOR UPDATE ───│ (Pessimistic Row Lock)         │                  │
-         │                             │    Assert Currency & Balance ──│ (Funds Validation)             │                  │
-         │                             │    UPDATE wallets (v2) ───────>│                                │                  │
-         │                             │    INSERT ledger (DEBIT) ─────>│ (Immutable Append-Only)       │                  │
-         │                             │    INSERT wager_tx (PROCESSED)─│                                │                  │
-         │                             │    INSERT outbox_messages ────>│─── Event: wager.tx.processed ─│                  │
-         │                             │─── COMMIT TRANSACTION ────────>│                                │                  │
-         │<── 201 Created (PROCESSED) ─│                                │                                │                  │
-         │                             │                                │─── FOR UPDATE SKIP LOCKED ────>│                  │
-         │                             │                                │<── Claimed 50 Messages ────────│                  │
-         │                             │                                │                                │─── SendMessage ─>│
-         │                             │                                │                                │    (GroupId=id)  │
-\`\`\`
-
-### Out-of-Order Reversal Handling (REFUND / ROLLBACK before BET)
-\`\`\`
-[Partner Game Provider]          [API Gateway]                 [PostgreSQL Engine]              [Pending Ref Worker]
-         │                             │                                │                                │
-         │─── POST tx (REFUND) ───────>│                                │                                │
-         │    (ref: BET-EXT-99)        │─── Referenced BET Exists? ─────│                                │
-         │                             │<── Not Found (Arrived Early) ──│                                │
-         │                             │                                │                                │
-         │                             │─── INSERT wager_tx ───────────>│                                │
-         │                             │    (status: PENDING_REFERENCE) │                                │
-         │<── 202 Accepted ────────────│                                │                                │
-         │    (status: PENDING_REF)    │                                │                                │
-         │                             │                                │─── Periodic Backoff Sweep ────>│
-         │                             │                                │<── Referenced BET Found! ──────│
-         │                             │                                │─── Lock Wallet & Apply Debit ─>│
-         │                             │                                │─── Transition to PROCESSED ───>│
-\`\`\``,
+![Pipeline ACID Interno](/v1/api/docs/diagrams/wagering-internal-flow.svg)`,
     },
   },
   "/v1/api/wallets/{id}/reconcile": {
     post: {
       tags: ["Operations & Audit"],
       summary: "Audit and reconcile wallet balance against ledger",
-      description: `Enforces the core financial invariant: wallet.balance == sum(wallet_ledger_entries). Locks the wallet exclusively, replays all ledger movements, detects divergence, applies corrective action, and outputs a complete audit report.
+      description: `Internal administrative reconciliation invoked by [Auditor / SRE Operator]. Enforces the core financial invariant: wallet.balance == sum(wallet_ledger_entries). Locks the target wallet exclusively via SELECT wallet FOR UPDATE, replays all ledger movements, detects divergence, applies corrective action, and outputs a complete audit report.
 
-\`\`\`
-[Auditor / SRE Operator]         [API Gateway]                 [PostgreSQL Engine]
-         │                             │                                │
-         │─── POST /wallets/:id/reconcile>                              │
-         │                             │─── BEGIN TRANSACTION ─────────>│
-         │                             │    SELECT wallet FOR UPDATE ───│ (Pessimistic Row Lock)
-         │                             │    SELECT SUM(direction*amount)│
-         │                             │      FROM ledger entries ─────>│ (Reconstruct From History)
-         │                             │<── ledgerSum, walletBalance ───│
-         │                             │                                │
-         │                             │─── Divergence Detected? ───────│
-         │                             │    [Yes]: UPDATE wallet balance│
-         │                             │           INSERT audit ledger  │
-         │                             │           EMIT divergence log  │
-         │                             │    [No]:  Clean Verification   │
-         │                             │─── COMMIT TRANSACTION ────────>│
-         │<── 200 OK ──────────────────│                                │
-         │    {reconciledBalance,      │                                │
-         │     hasDivergence: false}   │                                │
-\`\`\``,
+![Fluxo de Conciliação Contábil](/v1/api/docs/diagrams/reconcile-flow.svg)`,
       operationId: "reconcileWallet",
       parameters: [
         {
@@ -1258,7 +1132,7 @@ export const PUBLIC_OPENAPI_SPECIFICATION = {
   openapi: "3.0.3",
   info: {
     title: "Distributed Wagering Processor — Public Partner API",
-    version: "1.0.6",
+    version: "1.0.9",
     description:
       "Public specification for Game Providers integrating BET, WIN, LOSS, REFUND, and ROLLBACK wagering operations and player wallets.\n\nLooking for the interactive testing console? [Switch to Swagger UI](/v1/api/docs/swagger).",
     contact: {
@@ -1287,7 +1161,7 @@ export const PRIVATE_OPENAPI_SPECIFICATION = {
   openapi: "3.0.3",
   info: {
     title: "Distributed Wagering Processor — Private & Operational Console",
-    version: "1.0.6",
+    version: "1.0.9",
     description:
       "Internal and operational specification for site reliability engineers, operations, and technical evaluators. Includes administrative audit and reconciliation, Kubernetes probes, and Prometheus telemetry metrics.\n\nLooking for the partner reference? [Switch to ReDoc](/v1/api/docs).",
     contact: {
@@ -1345,6 +1219,13 @@ export class DocsController {
   @Get("swagger")
   getSwaggerView(@Res() res: Response): void {
     res.sendFile(join(process.cwd(), "public/docs/swagger.html"));
+  }
+
+  @Get("diagrams/:filename")
+  getDiagramAsset(@Param("filename") filename: string, @Res() res: Response): void {
+    const safeFilename = basename(filename);
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    res.sendFile(join(process.cwd(), "public/docs/diagrams", safeFilename));
   }
 
   @Get("private")
