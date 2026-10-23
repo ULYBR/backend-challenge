@@ -29,7 +29,7 @@ const ROUTE_RATE_LIMIT_RULES: Readonly<Record<string, RateLimitRule>> = {
   },
 };
 
-const EXEMPT_PATH_PREFIXES = ["/health", "/metrics"] as const;
+const EXEMPT_PATH_PREFIXES = ["/health", "/metrics", "/docs"] as const;
 
 interface ClientRateLimitState {
   readonly timestamps: number[];
