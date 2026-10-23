@@ -26,3 +26,5 @@ Processo: [ADR-0001](0001-registrar-decisoes-arquiteturais.md).
 | [0019](0019-expor-metricas-prometheus-e-logs-estruturados-sem-dados-sensiveis.md) | Expor métricas Prometheus (`prom-client`) via `MetricsPort` e sanitizar payloads financeiros nos logs | Accepted | 9 |
 | [0020](0020-ponto-de-extensao-auth-oidc-e-infraestrutura-terraform-autoscaling.md) | Ponto de extensão de autenticação (`ProviderIdentityPort` + `ProviderAuthGuard`) e infraestrutura escalável com Terraform e Auto Scaling | Accepted | 10 |
 | [0021](0021-testar-concorrencia-e-recuperacao-com-multiplas-instancias-e-infra-real.md) | Testar concorrência e recuperação com múltiplas instâncias reais da aplicação sobre PostgreSQL e SQS em containers | Accepted | 11 |
+| [0022](0022-mitigacao-owasp-api-security-e-rate-limiting.md) | Mitigação de vulnerabilidades OWASP API Security Top 10 e Rate Limiting defensivo com Sliding Window | Accepted | 10 |
+
