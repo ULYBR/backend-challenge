@@ -33,3 +33,19 @@ output "ecr_repository_url" {
   value       = aws_ecr_repository.app.repository_url
 }
 
+output "github_actions_role_arn" {
+  description = "IAM Role ARN to be configured in GitHub Secrets as AWS_ROLE_ARN for keyless CI/CD"
+  value       = aws_iam_role.github_actions_ecr_push.arn
+}
+
+output "acm_certificate_arn" {
+  description = "ACM Certificate ARN for the custom domain (if domain_name is provided)"
+  value       = local.has_custom_domain ? aws_acm_certificate.api[0].arn : null
+}
+
+output "api_custom_hostname" {
+  description = "Public HTTPS hostname for accessing the API over the internet"
+  value       = local.full_api_hostname
+}
+
+
