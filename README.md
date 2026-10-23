@@ -5,7 +5,7 @@ Serviço financeiro distribuído de alto desempenho e missão crítica para proc
 - **Enunciado oficial:** [docs/challenge/CHALLENGE.md](docs/challenge/CHALLENGE.md)
 - **Plano de fases e status:** [docs/ROADMAP.md](docs/ROADMAP.md)
 - **Arquitetura viva:** [ARCHITECTURE.md](ARCHITECTURE.md) · [Diagrama ER](docs/diagrams/er-diagram.md)
-- **Decisões arquiteturais:** [ADRs (0001 a 0022)](docs/adr/README.md) · [RFCs (RFC-0001 a RFC-0009)](docs/rfc/README.md) · [Runbooks Operacionais](docs/runbooks/README.md)
+- **Decisões arquiteturais:** [ADRs (0001 a 0023)](docs/adr/README.md) · [RFCs (RFC-0001 a RFC-0010)](docs/rfc/README.md) · [Runbooks Operacionais](docs/runbooks/README.md)
 
 
 ---

@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 
 const DEFAULT_CSP = "default-src 'none'; frame-ancestors 'none'";
 const DOCS_CSP =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.redoc.ly https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self'; img-src 'self' data: https:;";
+  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' *; img-src 'self' data: https:;";
 
 const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
   "X-Content-Type-Options": "nosniff",
@@ -21,8 +21,9 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
       res.setHeader(header, value);
     }
 
-    const path = req.path ?? req.url ?? "";
-    const isDocs = path.startsWith("/docs");
+    const targetUrl = `${req.originalUrl ?? ""} ${req.url ?? ""} ${req.path ?? ""}`.toLowerCase();
+    const isDocs =
+      targetUrl.includes("docs") || targetUrl.includes("swagger") || targetUrl.includes("openapi");
     res.setHeader("Content-Security-Policy", isDocs ? DOCS_CSP : DEFAULT_CSP);
 
     next();
