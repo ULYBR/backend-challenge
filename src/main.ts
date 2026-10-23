@@ -6,6 +6,7 @@ import { SqsQueueRegistry } from "@infrastructure/messaging/sqs.module";
 import { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "@src/app.module";
+import type { NextFunction, Request, Response } from "express";
 import { Logger } from "nestjs-pino";
 
 type StartupStrategy = (
@@ -56,6 +57,18 @@ export async function bootstrap(): Promise<INestApplication> {
       "X-Correlation-Id",
       "X-Idempotency-Key",
     ],
+  });
+
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    const url = req.url;
+    if (url.startsWith("/wallets") || url.startsWith("/wagering") || url.startsWith("/providers")) {
+      req.url = `/api/v1${url}`;
+    }
+    next();
+  });
+
+  app.setGlobalPrefix("api/v1", {
+    exclude: ["health", "health/(.*)", "metrics", "docs", "docs/(.*)"],
   });
 
   const sqsRegistry = app.get<SqsQueueRegistry>(TOKENS.SQS_QUEUE_REGISTRY);

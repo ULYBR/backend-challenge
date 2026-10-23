@@ -31,4 +31,27 @@ describe("SecurityHeadersMiddleware (OWASP API8 & A05 Security Headers Defense)"
     expect(headers["Referrer-Policy"]).toBe("no-referrer");
     expect(headers["Permissions-Policy"]).toBe("geolocation=(), camera=(), microphone=()");
   });
+
+  it("applies relaxed Content-Security-Policy for interactive documentation routes", () => {
+    const middleware = new SecurityHeadersMiddleware();
+    const headers: Record<string, string> = {};
+    const res = {
+      setHeader: (name: string, value: string) => {
+        headers[name] = value;
+      },
+    } as unknown as Response;
+    const req = { path: "/docs" } as Request;
+
+    let nextCalled = false;
+    const next: NextFunction = () => {
+      nextCalled = true;
+    };
+
+    middleware.use(req, res, next);
+
+    expect(nextCalled).toBe(true);
+    expect(headers["Content-Security-Policy"]).toContain("https://cdn.redoc.ly");
+    expect(headers["Content-Security-Policy"]).toContain("worker-src 'self' blob:");
+    expect(headers["Content-Security-Policy"]).toContain("https://unpkg.com");
+  });
 });
