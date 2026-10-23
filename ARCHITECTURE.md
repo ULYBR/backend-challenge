@@ -190,3 +190,23 @@ O script [`src/interfaces/cli/load-test.ts`](src/interfaces/cli/load-test.ts) im
    - *Decisão*: Rate limiting contextual por Provedor e rota na aplicação via `RateLimitGuard` + `SecurityHeadersMiddleware` (HSTS, CSP, etc.) + rate limit no Ingress.
    - *Trade-off*: A janela deslizante em memória opera por réplica de pod, protegendo o banco contra ataques volumétricos com zero latência de rede adicional (sem exigir Redis externo), com interface preparada para adapter distribuído se necessário. Documentado em [ADR-0022](docs/adr/0022-mitigacao-owasp-api-security-e-rate-limiting.md).
 
+## 14. Documentação Dual de API (ReDoc & Swagger) e Governança com Skill `document-api`
+
+A plataforma implementa uma separação arquitetural explícita entre documentação externa (parceiros) e console operacional interno:
+1. **Pública (`/v1/api/docs` — ReDoc 3-Column Reference)**:
+   - Visão estritamente **black-box** com aplicação rígida do princípio de **Information Hiding**.
+   - Diagramas de sequência orientados ao protocolo de negócio (`[Game Provider / Partner] <---> [Wagering API Gateway] <---> [Core Financial Engine]`).
+   - Oculta completamente detalhes de banco de dados (`SELECT ... FOR UPDATE`, queries SQL, nomes de tabelas/colunas internas como `wager_tx` ou `wallet_ledger_entries`) e mecânicas assíncronas de workers (`SKIP LOCKED`).
+   - Exemplos exaustivos mapeando todos os status de sucesso e erro (`200`, `201`, `202`, `400`, `404`, `409`, `422`, `429`, `503`).
+2. **Privada & Operacional (`/v1/api/docs/swagger` — Swagger UI Interactive Console)**:
+   - Visão **white-box** para SREs, auditores contábeis e avaliadores técnicos.
+   - Sem ocultação de mecanismos internos: detalha locks de concorrência, transações atômicas, transactional outbox com leases e comandos operacionais (`/wallets/:id/reconcile`, `/health/live`, `/health/ready`, `/metrics`).
+3. **Skill Padronizadora (`.agents/skills/document-api/SKILL.md`)**:
+   - Garante que qualquer funcionalidade nova ou alterada respeite essa segregação, mantenha diagramas monospaçados Unicode sem scripts externos pesados e preserve a regra de zero comentários em arquivos `.ts`.
+
+Documentado em:
+- [RFC-0010 — Padronização de Rotas `/api/v1`, `/v1/api` e Documentação Dual ReDoc & Swagger UI](docs/rfc/RFC-0010-padronizacao-rotas-api-v1-e-documentacao-dual-redoc-swagger.md)
+- [RFC-0011 — Diagramas de Fluxo e Sequência na Documentação OpenAPI](docs/rfc/RFC-0011-diagramas-de-fluxo-na-documentacao-openapi.md)
+- [ADR-0023 — Adotar Prefixo `/api/v1` e `/v1/api` com Compatibilidade Dual e Documentação ReDoc e Swagger](docs/adr/0023-adotar-prefixo-api-v1-e-documentacao-dual-redoc-swagger.md)
+- [ADR-0024 — Incluir Diagramas de Fluxo e Sequência na Documentação OpenAPI](docs/adr/0024-incluir-diagramas-de-fluxo-na-documentacao-openapi.md)
+
