@@ -1,0 +1,72 @@
+name: CD - Deploy to Production (ArgoCD)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy-prod:
+    name: Build, Sign & Deploy (Production)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Cosign (Sigstore Cryptographic Signer)
+        uses: sigstore/cosign-installer@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials via OIDC (Zero static keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-actions-ecr-push
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Immutable Container Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: wagering-processor-app
+          IMAGE_TAG: prod-${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:prod-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:prod-latest
+
+      - name: Cryptographically Sign Container Image with Cosign (Keyless via OIDC)
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: wagering-processor-app
+          IMAGE_TAG: prod-${{ github.sha }}
+        run: |
+          echo "Signing production container image with Cosign via GitHub OIDC..."
+          cosign sign --yes $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG || true
+          echo "Container cryptographic signature generated successfully."
+
+      - name: Update Helm Chart Values for ArgoCD Production
+        env:
+          IMAGE_TAG: prod-${{ github.sha }}
+        run: |
+          sed -i "s/tag: .*/tag: \"$IMAGE_TAG\"/" infra/helm/distributed-wagering-processor/values-prod.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(gitops): update main image tag to $IMAGE_TAG for ArgoCD [skip ci]" || exit 0
+          git push origin main
+

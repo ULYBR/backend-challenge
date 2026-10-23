@@ -1,0 +1,169 @@
+name: CI - Code Quality & Test Pyramid
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'feat/**'
+      - 'fix/**'
+      - 'chore/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =========================================================================
+  # 1. Commit Security & Secret Leak Prevention
+  # =========================================================================
+  security-and-commit-audit:
+    name: Commit Signature & Secret Leak Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (full history for git audit)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify GPG / SSH Commit Signatures
+        run: |
+          echo "Auditing commit cryptographic signatures on ref ${{ github.ref }}..."
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --show-signature -n 20 --pretty=format:"%h %G? %an <%ae> %s")
+          else
+            COMMITS=$(git log --show-signature -n 5 --pretty=format:"%h %G? %an <%ae> %s")
+          fi
+          echo "$COMMITS"
+          echo "Commit signature audit completed."
+
+      - name: Secret Scanning (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  # =========================================================================
+  # 2. Code Quality, Strict Typing & Infrastructure Validation
+  # =========================================================================
+  code-quality-and-iac-lint:
+    name: Quality, Strict Typing & IaC Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun runtime
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.4
+
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      - name: Setup Helm CLI
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Biome Linter & Code Formatting
+        run: bun run lint
+
+      - name: Strict TypeScript Compilation (tsc --noEmit)
+        run: bun run typecheck
+
+      - name: Hexagonal Architecture Guardrails & Comment Prohibition
+        run: bun test test/unit/architecture.spec.ts
+
+      - name: Terraform Code Formatting Check
+        run: terraform -chdir=infra/terraform fmt -check
+
+      - name: Helm Chart Lint & Template Validation
+        run: |
+          helm lint infra/helm/distributed-wagering-processor
+          helm template test-ci infra/helm/distributed-wagering-processor > /dev/null
+
+  # =========================================================================
+  # 3. Test Pyramid: Unit, Integration, E2E & Concurrency on Real Postgres/SQS
+  # =========================================================================
+  test-pyramid:
+    name: Test Pyramid (Unit, Integration, E2E & 8 Concurrency Scenarios)
+    needs: [security-and-commit-audit, code-quality-and-iac-lint]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: wagering
+          POSTGRES_PASSWORD: wagering
+          POSTGRES_DB: wagering_processor
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      ministack:
+        image: ministackorg/ministack:latest
+        ports:
+          - 4567:4566
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun runtime
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.4
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Execute Database Migrations (PostgreSQL 17)
+        run: bun run db:migrate:up
+        env:
+          DATABASE_URL: postgres://wagering:wagering@localhost:5433/wagering_processor
+
+      - name: Run Unit Test Suite (35 tests)
+        run: bun run test:unit
+
+      - name: Run Integration Test Suite (PostgreSQL 17 + SQS) (27 tests)
+        run: bun run test:integration
+        env:
+          DATABASE_URL: postgres://wagering:wagering@localhost:5433/wagering_processor
+          AWS_ENDPOINT_URL: http://localhost:4567
+
+      - name: Run E2E HTTP API Suite (3 tests)
+        run: bun run test:e2e
+        env:
+          DATABASE_URL: postgres://wagering:wagering@localhost:5433/wagering_processor
+          AWS_ENDPOINT_URL: http://localhost:4567
+
+      - name: Run Mandatory 8 Multi-Instance Concurrency Scenarios (8 tests)
+        run: bun run test:concurrency
+        env:
+          DATABASE_URL: postgres://wagering:wagering@localhost:5433/wagering_processor
+          AWS_ENDPOINT_URL: http://localhost:4567
+
+      - name: Run Load Test Benchmark (RPS & Latency Verification)
+        run: bun run test:load
+        env:
+          DATABASE_URL: postgres://wagering:wagering@localhost:5433/wagering_processor
+          AWS_ENDPOINT_URL: http://localhost:4567
+

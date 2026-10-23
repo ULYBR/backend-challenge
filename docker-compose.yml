@@ -1,0 +1,125 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: wagering-postgres
+    environment:
+      POSTGRES_USER: wagering
+      POSTGRES_PASSWORD: wagering
+      POSTGRES_DB: wagering_processor
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wagering -d wagering_processor"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  ministack:
+    image: ministackorg/ministack:latest
+    container_name: wagering-ministack
+    ports:
+      - "${SQS_PORT:-4567}:4566"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:4566/_ministack/health')\" || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+  localstack:
+    image: localstack/localstack:3.0.0
+    container_name: wagering-localstack
+    ports:
+      - "${LOCALSTACK_PORT:-4568}:4566"
+    environment:
+      - SERVICES=sqs
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    profiles: ["localstack"]
+
+  app-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      APP_ROLE: all
+      INSTANCE_ID: app-1
+      DATABASE_URL: postgres://wagering:wagering@postgres:5432/wagering_processor
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: wagering
+      DB_PASSWORD: wagering
+      DB_NAME: wagering_processor
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL: http://ministack:4566
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ministack:
+        condition: service_healthy
+    profiles: ["cluster"]
+
+  app-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      APP_ROLE: all
+      INSTANCE_ID: app-2
+      DATABASE_URL: postgres://wagering:wagering@postgres:5432/wagering_processor
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: wagering
+      DB_PASSWORD: wagering
+      DB_NAME: wagering_processor
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL: http://ministack:4566
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ministack:
+        condition: service_healthy
+    profiles: ["cluster"]
+
+  app-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      APP_ROLE: all
+      INSTANCE_ID: app-3
+      DATABASE_URL: postgres://wagering:wagering@postgres:5432/wagering_processor
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: wagering
+      DB_PASSWORD: wagering
+      DB_NAME: wagering_processor
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL: http://ministack:4566
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ministack:
+        condition: service_healthy
+    profiles: ["cluster"]
+
+volumes:
+  postgres_data:

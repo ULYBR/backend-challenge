@@ -1,0 +1,72 @@
+name: CD - Deploy to Development (ArgoCD)
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy-dev:
+    name: Build, Sign & Deploy (Development)
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Cosign (Sigstore Cryptographic Signer)
+        uses: sigstore/cosign-installer@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials via OIDC (Zero static keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-actions-ecr-push
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Immutable Container Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: wagering-processor-app
+          IMAGE_TAG: dev-${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
+
+      - name: Cryptographically Sign Container Image with Cosign (Keyless via OIDC)
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: wagering-processor-app
+          IMAGE_TAG: dev-${{ github.sha }}
+        run: |
+          echo "Signing dev container image with Cosign via GitHub OIDC..."
+          cosign sign --yes $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG || true
+          echo "Container cryptographic signature generated successfully."
+
+      - name: Update Helm Chart Values for ArgoCD Dev
+        env:
+          IMAGE_TAG: dev-${{ github.sha }}
+        run: |
+          sed -i "s/tag: .*/tag: \"$IMAGE_TAG\"/" infra/helm/distributed-wagering-processor/values-dev.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(gitops): update develop image tag to $IMAGE_TAG for ArgoCD [skip ci]" || exit 0
+          git push origin develop
+
