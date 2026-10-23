@@ -78,7 +78,17 @@ export async function bootstrap(): Promise<INestApplication> {
   });
 
   app.setGlobalPrefix("api/v1", {
-    exclude: ["health", "health/(.*)", "metrics", "docs", "docs/(.*)"],
+    exclude: [
+      "health",
+      "health/(.*)",
+      "metrics",
+      "docs",
+      "docs/(.*)",
+      "v1/api/docs",
+      "v1/api/docs/(.*)",
+      "api/v1/docs",
+      "api/v1/docs/(.*)",
+    ],
   });
 
   const sqsRegistry = app.get<SqsQueueRegistry>(TOKENS.SQS_QUEUE_REGISTRY);
