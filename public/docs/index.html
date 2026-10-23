@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distributed Wagering Processor API — Public Partner Reference</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+    }
+    #redoc-container {
+      width: 100%;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="redoc-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/redoc@2.1.5/bundles/redoc.standalone.js"></script>
+  <script>
+    Redoc.init(
+      '/v1/api/docs/public/openapi.json',
+      {
+        scrollYOffset: 0,
+        hideDownloadButton: false,
+        expandResponses: '200,201',
+        theme: {
+          colors: {
+            primary: {
+              main: '#2563eb'
+            }
+          },
+          typography: {
+            fontFamily: 'Roboto, sans-serif',
+            headings: {
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: '600'
+            }
+          }
+        }
+      },
+      document.getElementById('redoc-container')
+    );
+  </script>
+</body>
+</html>

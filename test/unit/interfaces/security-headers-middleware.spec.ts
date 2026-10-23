@@ -50,8 +50,31 @@ describe("SecurityHeadersMiddleware (OWASP API8 & A05 Security Headers Defense)"
     middleware.use(req, res, next);
 
     expect(nextCalled).toBe(true);
-    expect(headers["Content-Security-Policy"]).toContain("https://cdn.redoc.ly");
+    expect(headers["Content-Security-Policy"]).toContain("https://cdn.jsdelivr.net");
+    expect(headers["Content-Security-Policy"]).toContain("'unsafe-eval'");
     expect(headers["Content-Security-Policy"]).toContain("worker-src 'self' blob:");
     expect(headers["Content-Security-Policy"]).toContain("https://unpkg.com");
+  });
+
+  it("applies relaxed Content-Security-Policy for prefixed documentation routes like /v1/api/docs", () => {
+    const middleware = new SecurityHeadersMiddleware();
+    const headers: Record<string, string> = {};
+    const res = {
+      setHeader: (name: string, value: string) => {
+        headers[name] = value;
+      },
+    } as unknown as Response;
+    const req = { path: "/v1/api/docs" } as Request;
+
+    let nextCalled = false;
+    const next: NextFunction = () => {
+      nextCalled = true;
+    };
+
+    middleware.use(req, res, next);
+
+    expect(nextCalled).toBe(true);
+    expect(headers["Content-Security-Policy"]).toContain("worker-src 'self' blob:");
+    expect(headers["Content-Security-Policy"]).toContain("https://cdn.jsdelivr.net");
   });
 });

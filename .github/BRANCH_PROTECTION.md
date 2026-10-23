@@ -49,9 +49,33 @@ Para configurar no GitHub: **Settings $\rightarrow$ Rules $\rightarrow$ Rulesets
    - `Quality, Strict Typing & IaC Validation`
    - `Test Pyramid (Unit, Integration, E2E & 8 Concurrency Scenarios)`
    - `Supply Chain Security (Trivy & SBOM)`
+7. **Estratégia Padrão e Obrigatória de Merge: Squash and Merge**:
+   - É proibido utilizar *Merge Commit tradicional* para PRs de desenvolvimento (`feat/*`, `fix/*`, `chore/*` e Dependabot).
+   - Todos os PRs devem obrigatoriamente utilizar **Squash and Merge**.
+   - Benefícios contábeis e de engenharia:
+     - **Histórico 100% Linear e Limpo**: Elimina grafos paralelos ("train tracks") e commits intermediários de rascunho (`wip`, `ajuste de review`, `typo`).
+     - **Atomicidade e Reversibilidade**: Cada funcionalidade ou correção vira exatamente 1 commit semântico rastreável no `git log`. Facilita operações de `git revert` atômico e `git bisect` sem efeitos colaterais.
+     - **Conformidade de Assinatura**: O commit final gerado pelo GitHub no squash é automaticamente assinado e auditável.
 
-### 2.2 Regras para Branches de Feature (`feat/*`, `fix/*`)
+### 2.2 Configuração Recomendada no Repositório GitHub
+Em **Settings $\rightarrow$ General $\rightarrow$ Pull Requests**:
+- [x] **Allow squash merging**: Habilitado e configurado como padrão único.
+  - *Default commit message*: `Pull request title and description`.
+- [ ] **Allow merge commits**: Desmarcado (evita histórico poluído).
+- [ ] **Allow rebase merging**: Desmarcado (ou restrito a sincronizações internas).
+- [x] **Allow auto-merge**: Marcado (habilita o auto-merge assíncrono).
+- [x] **Automatically delete head branches**: Marcado (deleta branches efêmeras após o merge).
+
+### 2.3 Regras para Branches de Feature (`feat/*`, `fix/*`)
 - Desenvolvedores têm liberdade total para utilizar `git push --force-with-lease` durante o ciclo de desenvolvimento em sua própria branch para manter o histórico limpo via `rebase` e `squash`.
+
+### 2.4 Automação Assíncrona de Dependências (Dependabot Auto-Merge)
+Para manter o ecossistema continuamente seguro sem sobrecarregar a engenharia com revisões manuais repetitivas, implementa-se o workflow [dependabot-auto-merge.yaml](.github/workflows/dependabot-auto-merge.yaml):
+- **Atualizações Patch & Minor**: Aprovadas e agendadas para auto-merge (`gh pr merge --auto --squash`) automaticamente via GitHub Actions. O merge efetivo só ocorre após 100% dos checks de CI (testes de concorrência, tipo estrito, segurança Trivy e Gitleaks) passarem com sucesso.
+- **Atualizações Major (Breaking Changes)**: Requerem revisão manual, aprovação humana e testes locais antes do merge.
+- **Configurações necessárias no GitHub**:
+  - `Settings -> General -> Pull Requests`: Marcar **Allow auto-merge**.
+  - `Settings -> Actions -> General -> Workflow permissions`: Marcar **Allow GitHub Actions to create and approve pull requests**.
 
 ---
 
@@ -80,8 +104,9 @@ Abra um **Pull Request apontando para `develop`**. A esteira de CI será dispara
 - Pirâmide de testes (Unitários, Integração no PostgreSQL 17 + SQS, E2E e Concorrência com 3 nós)
 - Varredura de vulnerabilidades Trivy e auditoria Gitleaks
 
-### Passo 4: Merge em `develop` e Deploy em Dev
-Após aprovação do PR e passagem de todos os checks, o merge é feito para `develop`.
+### Passo 4: Merge em `develop` (via Squash) e Deploy em Dev
+Após aprovação do PR e passagem de todos os checks, o merge é realizado **obrigatoriamente via Squash and Merge** para `develop`.
+- O GitHub comprime todos os commits do PR em 1 commit semântico linear.
 - O GitHub Actions compila o container com a tag `dev-${SHA}`.
 - O manifesto `infra/helm/distributed-wagering-processor/values-dev.yaml` é atualizado.
 - O ArgoCD detecta a alteração e atualiza os Pods no namespace `wagering-dev`.
