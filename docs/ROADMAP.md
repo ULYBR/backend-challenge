@@ -33,6 +33,7 @@ Legenda: ⬜ não iniciado · 🟨 em andamento · ✅ concluído
 | 10 | ✅ | Autenticação (ponto de extensão) & Terraform Auto-Scaling | — | [0020](adr/0020-ponto-de-extensao-auth-oidc-e-infraestrutura-terraform-autoscaling.md) | Guard + port no código; desenho Keycloak no `ARCHITECTURE.md`; IaC Terraform (`infra/terraform/`) com Auto Scaling por `APP_ROLE` |
 | 11 | ✅ | Hardening de testes | [RFC-0009](rfc/RFC-0009-suite-concorrencia-multi-instancia-e-teste-de-carga.md) | [0021](adr/0021-testar-concorrencia-e-recuperacao-com-multiplas-instancias-e-infra-real.md) | Os 8 cenários de concorrência da seção 13 verdes com ≥3 instâncias simultâneas e PostgreSQL/SQS reais; invariante `balance == ledger` em todos; script reproduzível de carga |
 | 12 | ✅ | Documentação final | — | — | `README.md` com setup/comandos e exemplos curl; `ARCHITECTURE.md` com decisões, trade-offs, limitações e benchmark de carga; IaC Terraform completa |
+| 13 | ✅ | **Padrão de Rotas `/api/v1` & Documentação Dual ReDoc/Swagger** | [RFC-0010](rfc/RFC-0010-padronizacao-rotas-api-v1-e-documentacao-dual-redoc-swagger.md) | [0022](adr/0022-mitigacao-owasp-api-security-e-rate-limiting.md) · [0023](adr/0023-adotar-prefixo-api-v1-e-documentacao-dual-redoc-swagger.md) | Rotas versionadas sob `/api/v1` com rewrite de compatibilidade reversa para rotas legadas; ReDoc padrão Zé Delivery (`GET /docs`) e Swagger UI interativo (`GET /docs/swagger`); zero HTML manual em controllers; CSP adaptado |
 
 ## Mapa requisito → fase
 

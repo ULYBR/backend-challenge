@@ -10,16 +10,16 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
 
     expect(spec.openapi).toBe("3.1.0");
     expect(spec.info.title).toBe("Distributed Wagering Processor API");
-    expect(spec.paths["/wallets"]).toBeDefined();
-    expect(spec.paths["/wagering/transactions"]).toBeDefined();
-    expect(spec.paths["/wallets/{id}/ledger"]).toBeDefined();
-    expect(spec.paths["/wallets/{id}/reconcile"]).toBeDefined();
+    expect(spec.paths["/api/v1/wallets"]).toBeDefined();
+    expect(spec.paths["/api/v1/wagering/transactions"]).toBeDefined();
+    expect(spec.paths["/api/v1/wallets/{id}/ledger"]).toBeDefined();
+    expect(spec.paths["/api/v1/wallets/{id}/reconcile"]).toBeDefined();
     expect(spec.paths["/health/live"]).toBeDefined();
     expect(spec.paths["/metrics"]).toBeDefined();
     expect(spec.components.schemas.ProcessTransactionRequest).toBeDefined();
   });
 
-  it("serves interactive HTML view with Scalar API reference tag", () => {
+  it("serves ReDoc 3-column reference view matching Zé Delivery standard", () => {
     let sentHtml = "";
     const mockRes = {
       send: (body: string) => {
@@ -29,9 +29,27 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
 
     controller.getInteractiveDocView(mockRes);
 
-    expect(sentHtml).toContain("<!doctype html>");
-    expect(sentHtml).toContain("api-reference");
+    expect(sentHtml).toContain("<!DOCTYPE html>");
+    expect(sentHtml).toContain("<redoc");
+    expect(sentHtml).toContain("redoc.standalone.js");
+    expect(sentHtml).toContain("/docs/swagger");
     expect(sentHtml).toContain("/docs/openapi.json");
     expect(sentHtml).toContain("Distributed Wagering Processor");
+  });
+
+  it("serves Swagger UI HTML view at /docs/swagger", () => {
+    let sentHtml = "";
+    const mockRes = {
+      send: (body: string) => {
+        sentHtml = body;
+      },
+    } as unknown as Response;
+
+    controller.getSwaggerView(mockRes);
+
+    expect(sentHtml).toContain("<!DOCTYPE html>");
+    expect(sentHtml).toContain("swagger-ui");
+    expect(sentHtml).toContain("/docs/openapi.json");
+    expect(sentHtml).toContain("SwaggerUIBundle");
   });
 });

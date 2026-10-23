@@ -5,7 +5,7 @@ const OPENAPI_SPECIFICATION = {
   openapi: "3.1.0",
   info: {
     title: "Distributed Wagering Processor API",
-    version: "1.0.4",
+    version: "1.0.6",
     description:
       "Production-ready Distributed Wagering Processor following Hexagonal Architecture, Append-Only Ledger, Transactional Outbox, SQS FIFO messaging, and OWASP API Security defenses.",
     contact: {
@@ -34,7 +34,7 @@ const OPENAPI_SPECIFICATION = {
     },
   ],
   paths: {
-    "/wallets": {
+    "/api/v1/wallets": {
       post: {
         tags: ["Wallets"],
         summary: "Open a new player wallet",
@@ -69,7 +69,7 @@ const OPENAPI_SPECIFICATION = {
         },
       },
     },
-    "/wallets/{id}": {
+    "/api/v1/wallets/{id}": {
       get: {
         tags: ["Wallets"],
         summary: "Get wallet details by ID",
@@ -96,7 +96,7 @@ const OPENAPI_SPECIFICATION = {
         },
       },
     },
-    "/wallets/{id}/ledger": {
+    "/api/v1/wallets/{id}/ledger": {
       get: {
         tags: ["Wallets"],
         summary: "List immutable wallet ledger entries",
@@ -138,7 +138,7 @@ const OPENAPI_SPECIFICATION = {
         },
       },
     },
-    "/wallets/{id}/reconcile": {
+    "/api/v1/wallets/{id}/reconcile": {
       post: {
         tags: ["Wallets"],
         summary: "Audit and reconcile wallet balance against ledger",
@@ -166,7 +166,7 @@ const OPENAPI_SPECIFICATION = {
         },
       },
     },
-    "/wagering/transactions": {
+    "/api/v1/wagering/transactions": {
       post: {
         tags: ["Wagering"],
         summary: "Process a wagering transaction (BET, WIN, LOSS, REFUND, ROLLBACK)",
@@ -241,7 +241,7 @@ const OPENAPI_SPECIFICATION = {
         },
       },
     },
-    "/wagering/transactions/{id}": {
+    "/api/v1/wagering/transactions/{id}": {
       get: {
         tags: ["Wagering"],
         summary: "Get transaction by internal UUIDv7",
@@ -260,7 +260,7 @@ const OPENAPI_SPECIFICATION = {
         },
       },
     },
-    "/wagering/transactions/external/{providerId}/{externalTransactionId}": {
+    "/api/v1/wagering/transactions/external/{providerId}/{externalTransactionId}": {
       get: {
         tags: ["Wagering"],
         summary: "Get transaction by provider ID and external transaction ID",
@@ -397,35 +397,89 @@ export class DocsController {
   @Get()
   @Header("Content-Type", "text/html; charset=utf-8")
   getInteractiveDocView(@Res() res: Response): void {
-    const html = `<!doctype html>
+    const html = `<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Distributed Wagering Processor — API Reference</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>" />
-    <style>
-      body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; }
-      #fallback { display: none; padding: 32px; max-width: 900px; margin: 0 auto; }
-      .badge { background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 12px; }
-      .endpoint { background: #1e293b; border-radius: 8px; padding: 16px; margin: 16px 0; border: 1px solid #334155; }
-      code { background: #020617; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #38bdf8; }
-    </style>
-  </head>
-  <body>
-    <div id="fallback">
-      <h1>🎰 Distributed Wagering Processor API</h1>
-      <p>Interactive documentation powered by OpenAPI 3.1. Raw JSON specification available at <a href="/docs/openapi.json" style="color:#38bdf8">/docs/openapi.json</a>.</p>
-      <div class="endpoint"><span class="badge">POST</span> <code>/wallets</code> — Criar carteira</div>
-      <div class="endpoint"><span class="badge">POST</span> <code>/wagering/transactions</code> — Processar aposta (BET, WIN, LOSS, REFUND, ROLLBACK)</div>
-      <div class="endpoint"><span class="badge">GET</span> <code>/wallets/:id/ledger</code> — Extrato contábil com cursor pagination</div>
-      <div class="endpoint"><span class="badge">POST</span> <code>/wallets/:id/reconcile</code> — Auditoria de integridade financeira</div>
-      <div class="endpoint"><span class="badge">GET</span> <code>/health/ready</code> — Healthcheck readiness</div>
-      <div class="endpoint"><span class="badge">GET</span> <code>/metrics</code> — Métricas Prometheus</div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distributed Wagering Processor API — Reference Documentation</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body { margin: 0; padding: 0; }
+    .top-bar-nav { background: #0f172a; padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; color: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.25); position: sticky; top: 0; z-index: 1000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .top-bar-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+    .top-bar-nav .brand span { color: #38bdf8; font-weight: 500; font-size: 13px; }
+    .top-bar-nav .links { display: flex; align-items: center; gap: 20px; }
+    .top-bar-nav a { color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 13px; transition: color 0.15s; }
+    .top-bar-nav a:hover { color: #ffffff; text-decoration: underline; }
+    .top-bar-nav .interactive-btn { background: #2563eb; color: #ffffff !important; padding: 6px 14px; border-radius: 6px; text-decoration: none !important; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+    .top-bar-nav .interactive-btn:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <div class="top-bar-nav">
+    <div class="brand">
+      🎰 Distributed Wagering Processor API <span>v1.0.6 (Public Reference)</span>
     </div>
-    <script id="api-reference" data-url="/docs/openapi.json"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference" onerror="document.getElementById('fallback').style.display='block';"></script>
-  </body>
+    <div class="links">
+      <a href="/docs/swagger" class="interactive-btn">⚡ Try it out in Swagger UI</a>
+      <a href="/docs/openapi.json" target="_blank">OpenAPI 3.1 Spec (JSON)</a>
+    </div>
+  </div>
+  <redoc spec-url="/docs/openapi.json" expand-responses="200,201" theme='{"colors":{"primary":{"main":"#2563eb"}},"typography":{"headings":{"fontFamily":"Montserrat, sans-serif"}}}'></redoc>
+  <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+</body>
+</html>`;
+
+    res.send(html);
+  }
+
+  @Get("swagger")
+  @Header("Content-Type", "text/html; charset=utf-8")
+  getSwaggerView(@Res() res: Response): void {
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distributed Wagering Processor — Swagger UI</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>" />
+  <style>
+    body { margin: 0; background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .top-bar-nav { background: #0f172a; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; color: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .top-bar-nav a { color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 14px; margin-left: 20px; }
+    .top-bar-nav a:hover { text-decoration: underline; color: #ffffff; }
+    .swagger-ui .topbar { display: none; }
+  </style>
+</head>
+<body>
+  <div class="top-bar-nav">
+    <span>🎰 <strong>Distributed Wagering Processor</strong> — Interactive Swagger UI (Try-It-Out)</span>
+    <div>
+      <a href="/docs">← Switch to Reference View (ReDoc)</a>
+      <a href="/docs/openapi.json" target="_blank">OpenAPI JSON</a>
+    </div>
+  </div>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js" crossorigin></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: '/docs/openapi.json',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    };
+  </script>
+</body>
 </html>`;
 
     res.send(html);
