@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "wagering.fullname" . }}-config
+  labels:
+    {{- include "wagering.labels" . | nindent 4 }}
+data:
+  NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  AWS_REGION: {{ .Values.global.awsRegion | quote }}
+  DB_HOST: {{ .Values.config.dbHost | quote }}
+  DB_PORT: {{ .Values.config.dbPort | quote }}
+  DB_NAME: {{ .Values.config.dbName | quote }}
+  DB_USER: {{ .Values.config.dbUser | quote }}
+  DB_POOL_MIN: {{ .Values.config.dbPoolMin | quote }}
+  DB_POOL_MAX: {{ .Values.config.dbPoolMax | quote }}
+  DB_LOCK_TIMEOUT_MS: {{ .Values.config.dbLockTimeoutMs | quote }}
+  SQS_WAGER_QUEUE_NAME: {{ .Values.config.sqsWagerQueueName | quote }}
+  SQS_WAGER_DLQ_NAME: {{ .Values.config.sqsWagerDlqName | quote }}
+  SQS_EVENTS_QUEUE_NAME: {{ .Values.config.sqsEventsQueueName | quote }}
+  SQS_CONSUMER_NAME: {{ .Values.config.sqsConsumerName | quote }}
+  SQS_MAX_RECEIVE_COUNT: {{ .Values.config.sqsMaxReceiveCount | quote }}
+  OUTBOX_POLL_INTERVAL_MS: {{ .Values.config.outboxPollIntervalMs | quote }}
+  OUTBOX_BATCH_SIZE: {{ .Values.config.outboxBatchSize | quote }}
+  PENDING_REF_POLL_INTERVAL_MS: {{ .Values.config.pendingRefPollIntervalMs | quote }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "wagering.fullname" . }}-secret
+  labels:
+    {{- include "wagering.labels" . | nindent 4 }}
+type: Opaque
+data:
+  DB_PASSWORD: {{ .Values.secrets.dbPassword | b64enc | quote }}
+

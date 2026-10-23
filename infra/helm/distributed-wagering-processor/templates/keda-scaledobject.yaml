@@ -1,0 +1,26 @@
+{{- if .Values.consumer.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "wagering.fullname" . }}-consumer-keda
+  labels:
+    {{- include "wagering.labels" . | nindent 4 }}
+    app.kubernetes.io/component: consumer
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "wagering.fullname" . }}-consumer
+  minReplicaCount: {{ .Values.consumer.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.consumer.keda.maxReplicaCount }}
+  cooldownPeriod: 30
+  pollingInterval: 15
+  triggers:
+    - type: aws-sqs-queue
+      metadata:
+        queueURL: "https://sqs.{{ .Values.global.awsRegion }}.amazonaws.com/{{ .Values.config.sqsWagerQueueName }}"
+        queueLength: {{ .Values.consumer.keda.queueLengthTarget | quote }}
+        awsRegion: {{ .Values.global.awsRegion | quote }}
+        identityOwner: operator
+{{- end }}
+
