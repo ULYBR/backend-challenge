@@ -1,4 +1,4 @@
-name: Dependabot Auto-Merge
+name: Dependabot Flow-Safe Auto-Merge
 
 on:
   pull_request_target:
@@ -13,8 +13,8 @@ permissions:
   contents: write
 
 jobs:
-  dependabot-auto-merge:
-    name: Auto-Approve & Enable Auto-Merge
+  evaluate-and-merge:
+    name: Evaluate Flow Impact & Enable Auto-Merge
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
@@ -24,11 +24,55 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Auto-Approve and Enable Auto-Merge (Patch & Minor)
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+      - name: Check Business Flow Impact
+        id: flow-check
         run: |
-          gh pr review --approve "$PR_URL"
+          UPDATE_TYPE="${{ steps.metadata.outputs.update-type }}"
+          DEP_TYPE="${{ steps.metadata.outputs.dependency-type }}"
+          PACKAGE_ECOSYSTEM="${{ steps.metadata.outputs.package-ecosystem }}"
+          DEP_GROUP="${{ steps.metadata.outputs.dependency-group }}"
+
+          echo "Evaluating dependency update for flow safety..."
+          echo "Update Type: $UPDATE_TYPE"
+          echo "Dependency Type: $DEP_TYPE"
+          echo "Package Ecosystem: $PACKAGE_ECOSYSTEM"
+          echo "Dependency Group: $DEP_GROUP"
+
+          if [ "$UPDATE_TYPE" = "version-update:semver-major" ]; then
+            echo "can_auto_merge=false" >> $GITHUB_OUTPUT
+            echo "reason=Major version upgrade (potential breaking changes affecting business flows)" >> $GITHUB_OUTPUT
+          elif [ "$DEP_TYPE" = "direct:development" ] || [ "$DEP_GROUP" = "dev-dependencies" ]; then
+            echo "can_auto_merge=true" >> $GITHUB_OUTPUT
+            echo "reason=Development dependency update (does not affect runtime business flows)" >> $GITHUB_OUTPUT
+          elif [ "$PACKAGE_ECOSYSTEM" = "github-actions" ] || [ "$DEP_GROUP" = "actions" ]; then
+            echo "can_auto_merge=true" >> $GITHUB_OUTPUT
+            echo "reason=GitHub Actions workflow update (does not affect runtime business flows)" >> $GITHUB_OUTPUT
+          elif [ "$PACKAGE_ECOSYSTEM" = "terraform" ] || [ "$DEP_GROUP" = "terraform-providers" ]; then
+            echo "can_auto_merge=true" >> $GITHUB_OUTPUT
+            echo "reason=Terraform provider update (infrastructure module verified by CI)" >> $GITHUB_OUTPUT
+          elif [ "$UPDATE_TYPE" = "version-update:semver-patch" ]; then
+            echo "can_auto_merge=true" >> $GITHUB_OUTPUT
+            echo "reason=Runtime patch update (backward-compatible bugfix verified by full integration test suite)" >> $GITHUB_OUTPUT
+          else
+            echo "can_auto_merge=false" >> $GITHUB_OUTPUT
+            echo "reason=Runtime minor/major dependency update (requires manual review to verify financial flows)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Auto-Approve and Enable Auto-Merge
+        if: steps.flow-check.outputs.can_auto_merge == 'true'
+        run: |
+          echo "Approving PR: ${{ steps.flow-check.outputs.reason }}"
+          gh pr review --approve "$PR_URL" --body "✅ **Automated Flow-Safety Approval**: ${{ steps.flow-check.outputs.reason }}."
           gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Flag for Manual Engineering Review
+        if: steps.flow-check.outputs.can_auto_merge == 'false'
+        run: |
+          echo "Auto-merge disabled: ${{ steps.flow-check.outputs.reason }}"
+          gh pr comment "$PR_URL" --body "⚠️ **Manual Review Required**: Dependabot auto-merge was skipped because: **${{ steps.flow-check.outputs.reason }}**. Please verify that this update does not affect financial state transitions, locks or idempotency contracts before merging."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
