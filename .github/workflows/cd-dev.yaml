@@ -17,6 +17,7 @@ concurrency:
 jobs:
   build-and-deploy-dev:
     name: Build, Sign & Deploy (Development)
+    if: hashFiles('src/main.ts') != ''
     runs-on: ubuntu-latest
     environment: development
     steps:
