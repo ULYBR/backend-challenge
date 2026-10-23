@@ -28,4 +28,5 @@ Processo: [ADR-0001](0001-registrar-decisoes-arquiteturais.md).
 | [0021](0021-testar-concorrencia-e-recuperacao-com-multiplas-instancias-e-infra-real.md) | Testar concorrência e recuperação com múltiplas instâncias reais da aplicação sobre PostgreSQL e SQS em containers | Accepted | 11 |
 | [0022](0022-mitigacao-owasp-api-security-e-rate-limiting.md) | Mitigação de vulnerabilidades OWASP API Security Top 10 e Rate Limiting defensivo com Sliding Window | Accepted | 10 |
 | [0023](0023-adotar-prefixo-api-v1-e-documentacao-dual-redoc-swagger.md) | Adotar prefixo /api/v1 com compatibilidade reversa e documentação dual ReDoc e Swagger UI | Accepted | 10 |
+| [0024](0024-incluir-diagramas-de-fluxo-na-documentacao-openapi.md) | Incluir Diagramas de Fluxo e Sequência na Documentação OpenAPI | Accepted | 14 |
 

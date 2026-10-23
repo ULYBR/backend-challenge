@@ -14,6 +14,7 @@ Enunciado: [docs/challenge/CHALLENGE.md](docs/challenge/CHALLENGE.md). Plano: [d
 2. Toda decisão arquitetural relevante vira uma **ADR** em `docs/adr/` (use a skill `write-adr`). ADR aceita não é editada: é substituída por outra (`Superseded by`).
 3. Ao fim de cada step: atualizar `docs/ROADMAP.md` e `ARCHITECTURE.md`.
 4. Migrations seguem a skill `db-migration`: SQL explícito, `up` e `down`, e teste para cada constraint.
+5. Toda documentação de API segue a skill `document-api`: OpenAPI 3.0.3, segregação pública/privada com **information hiding** (documentação pública é estritamente black-box e nunca vaza queries SQL, nomes de tabelas ou workers internos), diagramas de fluxo de negócio em ASCII/Unicode e cobertura exaustiva de respostas (200, 201, 202, 400, 404, 409, 422, 429, 503).
 
 ## Invariantes financeiras (violação = falha eliminatória)
 
