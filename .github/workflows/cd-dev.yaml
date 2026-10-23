@@ -69,3 +69,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -am "chore(gitops): update develop image tag to $IMAGE_TAG for ArgoCD [skip ci]" || exit 0
           git push origin develop
+
