@@ -8,7 +8,7 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
   it("serves public OpenAPI specification isolating partner routes from internal ops", () => {
     const spec = controller.getPublicOpenApiSpec();
 
-    expect(spec.openapi).toBe("3.1.0");
+    expect(spec.openapi).toBe("3.0.3");
     expect(spec.info.title).toContain("Public Partner API");
     expect(spec.paths["/v1/api/wallets"]).toBeDefined();
     expect(spec.paths["/v1/api/wagering/transactions"]).toBeDefined();
@@ -22,7 +22,7 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
   it("serves private & operational OpenAPI specification containing all audit and telemetry routes", () => {
     const spec = controller.getPrivateOpenApiSpec();
 
-    expect(spec.openapi).toBe("3.1.0");
+    expect(spec.openapi).toBe("3.0.3");
     expect(spec.info.title).toContain("Private & Operational Console");
     expect(spec.paths["/v1/api/wallets"]).toBeDefined();
     expect(spec.paths["/v1/api/wagering/transactions"]).toBeDefined();
@@ -31,38 +31,29 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
     expect(spec.paths["/metrics"]).toBeDefined();
   });
 
-  it("serves ReDoc public 3-column reference view pointing to public OpenAPI spec", () => {
-    let sentHtml = "";
+  it("serves ReDoc public 3-column reference view pointing to public HTML file", () => {
+    let sentPath = "";
     const mockRes = {
-      send: (body: string) => {
-        sentHtml = body;
+      sendFile: (filePath: string) => {
+        sentPath = filePath;
       },
     } as unknown as Response;
 
     controller.getInteractiveDocView(mockRes);
 
-    expect(sentHtml).toContain("<!DOCTYPE html>");
-    expect(sentHtml).toContain("<redoc");
-    expect(sentHtml).toContain("redoc.standalone.js");
-    expect(sentHtml).toContain("/v1/api/docs/swagger");
-    expect(sentHtml).toContain("/v1/api/docs/public/openapi.json");
-    expect(sentHtml).toContain("Public Partner Reference");
+    expect(sentPath).toContain("public/docs/index.html");
   });
 
-  it("serves Swagger UI private operational view pointing to private OpenAPI spec", () => {
-    let sentHtml = "";
+  it("serves Swagger UI private operational view pointing to private HTML file", () => {
+    let sentPath = "";
     const mockRes = {
-      send: (body: string) => {
-        sentHtml = body;
+      sendFile: (filePath: string) => {
+        sentPath = filePath;
       },
     } as unknown as Response;
 
     controller.getSwaggerView(mockRes);
 
-    expect(sentHtml).toContain("<!DOCTYPE html>");
-    expect(sentHtml).toContain("swagger-ui");
-    expect(sentHtml).toContain("/v1/api/docs/private/openapi.json");
-    expect(sentHtml).toContain("SwaggerUIBundle");
-    expect(sentHtml).toContain("Private & Operational Console");
+    expect(sentPath).toContain("public/docs/swagger.html");
   });
 });

@@ -1,4 +1,5 @@
-import { Controller, Get, Header, Res } from "@nestjs/common";
+import { join } from "node:path";
+import { Controller, Get, Res } from "@nestjs/common";
 import type { Response } from "express";
 
 const SCHEMAS = {
@@ -364,12 +365,12 @@ const PRIVATE_PATHS = {
 };
 
 export const PUBLIC_OPENAPI_SPECIFICATION = {
-  openapi: "3.1.0",
+  openapi: "3.0.3",
   info: {
     title: "Distributed Wagering Processor — Public Partner API",
     version: "1.0.6",
     description:
-      "Public specification for Game Providers integrating BET, WIN, LOSS, REFUND, and ROLLBACK wagering operations and player wallets.",
+      "Public specification for Game Providers integrating BET, WIN, LOSS, REFUND, and ROLLBACK wagering operations and player wallets.\n\nLooking for the interactive testing console? [Switch to Swagger UI](/v1/api/docs/swagger).",
     contact: {
       name: "Engineering Team",
       url: "https://github.com/ULYBR/backend-challenge",
@@ -393,12 +394,12 @@ export const PUBLIC_OPENAPI_SPECIFICATION = {
 };
 
 export const PRIVATE_OPENAPI_SPECIFICATION = {
-  openapi: "3.1.0",
+  openapi: "3.0.3",
   info: {
     title: "Distributed Wagering Processor — Private & Operational Console",
     version: "1.0.6",
     description:
-      "Internal and operational specification for site reliability engineers, operations, and technical evaluators. Includes administrative audit and reconciliation, Kubernetes probes, and Prometheus telemetry metrics.",
+      "Internal and operational specification for site reliability engineers, operations, and technical evaluators. Includes administrative audit and reconciliation, Kubernetes probes, and Prometheus telemetry metrics.\n\nLooking for the partner reference? [Switch to ReDoc](/v1/api/docs).",
     contact: {
       name: "Engineering Team",
       url: "https://github.com/ULYBR/backend-challenge",
@@ -447,98 +448,16 @@ export class DocsController {
   }
 
   @Get()
-  @Header("Content-Type", "text/html; charset=utf-8")
   getInteractiveDocView(@Res() res: Response): void {
-    const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Distributed Wagering Processor API — Public Partner Reference</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
-  <style>
-    body { margin: 0; padding: 0; }
-    .top-bar-nav { background: #0f172a; padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; color: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.25); position: sticky; top: 0; z-index: 1000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .top-bar-nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
-    .top-bar-nav .brand span { color: #38bdf8; font-weight: 500; font-size: 13px; }
-    .top-bar-nav .links { display: flex; align-items: center; gap: 20px; }
-    .top-bar-nav a { color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 13px; transition: color 0.15s; }
-    .top-bar-nav a:hover { color: #ffffff; text-decoration: underline; }
-    .top-bar-nav .interactive-btn { background: #2563eb; color: #ffffff !important; padding: 6px 14px; border-radius: 6px; text-decoration: none !important; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
-    .top-bar-nav .interactive-btn:hover { background: #1d4ed8; }
-  </style>
-</head>
-<body>
-  <div class="top-bar-nav">
-    <div class="brand">
-      🎰 Distributed Wagering Processor API <span>Public Partner Reference (v1)</span>
-    </div>
-    <div class="links">
-      <a href="/v1/api/docs/swagger" class="interactive-btn">🔒 Private & Ops Console (Swagger UI)</a>
-      <a href="/v1/api/docs/public/openapi.json" target="_blank">Public OpenAPI (JSON)</a>
-    </div>
-  </div>
-  <redoc spec-url="/v1/api/docs/public/openapi.json" expand-responses="200,201" theme='{"colors":{"primary":{"main":"#2563eb"}},"typography":{"headings":{"fontFamily":"Montserrat, sans-serif"}}}'></redoc>
-  <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
-</body>
-</html>`;
-
-    res.send(html);
+    res.sendFile(join(process.cwd(), "public/docs/index.html"));
   }
 
   @Get("swagger")
-  @Header("Content-Type", "text/html; charset=utf-8")
   getSwaggerView(@Res() res: Response): void {
-    const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Distributed Wagering Processor — Private & Operational Console</title>
-  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>" />
-  <style>
-    body { margin: 0; background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .top-bar-nav { background: #0f172a; padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; color: #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-    .top-bar-nav a { color: #38bdf8; text-decoration: none; font-weight: 600; font-size: 14px; margin-left: 20px; }
-    .top-bar-nav a:hover { text-decoration: underline; color: #ffffff; }
-    .swagger-ui .topbar { display: none; }
-  </style>
-</head>
-<body>
-  <div class="top-bar-nav">
-    <span>🔒 <strong>Distributed Wagering Processor</strong> — Private & Operational Console (Swagger UI)</span>
-    <div>
-      <a href="/v1/api/docs">📖 Public Partner Reference (ReDoc)</a>
-      <a href="/v1/api/docs/private/openapi.json" target="_blank">Private OpenAPI (JSON)</a>
-    </div>
-  </div>
-  <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
-  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js" crossorigin></script>
-  <script>
-    window.onload = () => {
-      window.ui = SwaggerUIBundle({
-        url: '/v1/api/docs/private/openapi.json',
-        dom_id: '#swagger-ui',
-        deepLinking: true,
-        presets: [
-          SwaggerUIBundle.presets.apis,
-          SwaggerUIStandalonePreset
-        ],
-        layout: "BaseLayout"
-      });
-    };
-  </script>
-</body>
-</html>`;
-
-    res.send(html);
+    res.sendFile(join(process.cwd(), "public/docs/swagger.html"));
   }
 
   @Get("private")
-  @Header("Content-Type", "text/html; charset=utf-8")
   getPrivateDocView(@Res() res: Response): void {
     this.getSwaggerView(res);
   }

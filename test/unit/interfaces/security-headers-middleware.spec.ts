@@ -50,7 +50,8 @@ describe("SecurityHeadersMiddleware (OWASP API8 & A05 Security Headers Defense)"
     middleware.use(req, res, next);
 
     expect(nextCalled).toBe(true);
-    expect(headers["Content-Security-Policy"]).toContain("https://cdn.redoc.ly");
+    expect(headers["Content-Security-Policy"]).toContain("https://cdn.jsdelivr.net");
+    expect(headers["Content-Security-Policy"]).toContain("'unsafe-eval'");
     expect(headers["Content-Security-Policy"]).toContain("worker-src 'self' blob:");
     expect(headers["Content-Security-Policy"]).toContain("https://unpkg.com");
   });
@@ -74,6 +75,6 @@ describe("SecurityHeadersMiddleware (OWASP API8 & A05 Security Headers Defense)"
 
     expect(nextCalled).toBe(true);
     expect(headers["Content-Security-Policy"]).toContain("worker-src 'self' blob:");
-    expect(headers["Content-Security-Policy"]).toContain("https://cdn.redoc.ly");
+    expect(headers["Content-Security-Policy"]).toContain("https://cdn.jsdelivr.net");
   });
 });
