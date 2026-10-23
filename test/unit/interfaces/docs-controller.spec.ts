@@ -9,26 +9,24 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
     const spec = controller.getPublicOpenApiSpec();
 
     expect(spec.openapi).toBe("3.0.3");
+    expect(spec.info.version).toBe("1.0.9");
     expect(spec.info.title).toContain("Public Partner API");
     expect(spec.paths["/v1/api/wallets"]).toBeDefined();
-    expect(spec.paths["/v1/api/wallets"].post.description).toContain("[Game Provider / Partner]");
-    expect(spec.paths["/v1/api/wallets"].post.description).toContain("Assert Player Uniqueness");
+    expect(spec.paths["/v1/api/wallets"].post.description).toContain("wallet-flow.svg");
+    expect(spec.paths["/v1/api/wallets"].post.description).not.toContain("```");
     expect(spec.paths["/v1/api/wallets"].post.description).not.toContain("INSERT wallets");
     expect(spec.paths["/v1/api/wallets"].post.description).not.toContain("outbox_messages");
     expect(spec.paths["/v1/api/wagering/transactions"]).toBeDefined();
     expect(spec.paths["/v1/api/wagering/transactions"].post.description).toContain(
-      "Primary Financial Transaction Lifecycle",
+      "wagering-flow.svg",
     );
-    expect(spec.paths["/v1/api/wagering/transactions"].post.description).toContain(
-      "Out-of-Order Reversal Handling",
-    );
+    expect(spec.paths["/v1/api/wagering/transactions"].post.description).not.toContain("```");
     expect(spec.paths["/v1/api/wagering/transactions"].post.description).not.toContain(
       "SELECT wallet FOR UPDATE",
     );
     expect(spec.paths["/v1/api/wallets/{id}/ledger"]).toBeDefined();
-    expect(spec.paths["/v1/api/wallets/{id}/ledger"].get.description).toContain(
-      "Decode Keyset Cursor",
-    );
+    expect(spec.paths["/v1/api/wallets/{id}/ledger"].get.description).toContain("ledger-flow.svg");
+    expect(spec.paths["/v1/api/wallets/{id}/ledger"].get.description).not.toContain("```");
     expect(spec.paths["/v1/api/wallets/{id}/ledger"].get.description).not.toContain(
       "SELECT FROM ledger",
     );
@@ -42,6 +40,7 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
     const spec = controller.getPrivateOpenApiSpec();
 
     expect(spec.openapi).toBe("3.0.3");
+    expect(spec.info.version).toBe("1.0.9");
     expect(spec.info.title).toContain("Private & Operational Console");
     expect(spec.paths["/v1/api/wallets"]).toBeDefined();
     expect(spec.paths["/v1/api/wagering/transactions"]).toBeDefined();
@@ -49,15 +48,19 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
     expect(privateWagerPost.description).toContain(
       "Primary ACID Execution Pipeline (White-Box Internal Architecture)",
     );
+    expect(privateWagerPost.description).toContain("wagering-internal-flow.svg");
     expect(privateWagerPost.description).toContain("SELECT wallet FOR UPDATE");
     expect(privateWagerPost.description).toContain("outbox_messages");
     expect(privateWagerPost.description).toContain("FOR UPDATE SKIP LOCKED");
+    expect(privateWagerPost.description).not.toContain("```");
     expect(spec.paths["/v1/api/wallets/{id}/reconcile"]).toBeDefined();
     const reconcilePost = (
       spec.paths["/v1/api/wallets/{id}/reconcile"] as { post: { description: string } }
     ).post;
     expect(reconcilePost.description).toContain("[Auditor / SRE Operator]");
+    expect(reconcilePost.description).toContain("reconcile-flow.svg");
     expect(reconcilePost.description).toContain("SELECT wallet FOR UPDATE");
+    expect(reconcilePost.description).not.toContain("```");
     const reconcileResponses = (
       spec.paths["/v1/api/wallets/{id}/reconcile"] as {
         post: {
@@ -107,5 +110,25 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
     controller.getSwaggerView(mockRes);
 
     expect(sentPath).toContain("public/docs/swagger.html");
+  });
+
+  it("serves SVG sequence diagram assets with correct mime type and path", () => {
+    let sentPath = "";
+    let contentType = "";
+    const mockRes = {
+      setHeader: (name: string, value: string) => {
+        if (name.toLowerCase() === "content-type") {
+          contentType = value;
+        }
+      },
+      sendFile: (filePath: string) => {
+        sentPath = filePath;
+      },
+    } as unknown as Response;
+
+    controller.getDiagramAsset("wagering-flow.svg", mockRes);
+
+    expect(contentType).toContain("image/svg+xml");
+    expect(sentPath).toContain("public/docs/diagrams/wagering-flow.svg");
   });
 });

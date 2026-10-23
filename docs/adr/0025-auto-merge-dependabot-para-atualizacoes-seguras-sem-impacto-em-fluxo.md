@@ -70,3 +70,4 @@ A regra de aprovação e habilitação de auto-merge é estruturada da seguinte 
 - Execução do workflow `.github/workflows/dependabot-auto-merge.yaml` em novos PRs abertos pelo Dependabot.
 - Verificação de que PRs de `devDependencies` recebem aprovação e auto-merge automático.
 - Verificação de que PRs que violam as regras seguras recebem comentário alertando para revisão manual.
+
