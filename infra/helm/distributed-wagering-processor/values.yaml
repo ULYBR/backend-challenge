@@ -51,6 +51,9 @@ api:
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/target-type: ip
       alb.ingress.kubernetes.io/healthcheck-path: /health/ready
+      nginx.ingress.kubernetes.io/limit-rps: "100"
+      nginx.ingress.kubernetes.io/limit-connections: "20"
+
     hosts:
       - host: wagering.example.com
         paths:

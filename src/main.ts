@@ -46,6 +46,17 @@ export async function bootstrap(): Promise<INestApplication> {
 
   app.useLogger(app.get(Logger));
   app.enableShutdownHooks();
+  app.enableCors({
+    origin: "*",
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Provider-Id",
+      "X-Correlation-Id",
+      "X-Idempotency-Key",
+    ],
+  });
 
   const sqsRegistry = app.get<SqsQueueRegistry>(TOKENS.SQS_QUEUE_REGISTRY);
   await sqsRegistry.ensureQueues();
