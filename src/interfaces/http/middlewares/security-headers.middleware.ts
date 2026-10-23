@@ -22,7 +22,7 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     }
 
     const path = req.path ?? req.url ?? "";
-    const isDocs = path.startsWith("/docs");
+    const isDocs = path.startsWith("/docs") || path.includes("/docs");
     res.setHeader("Content-Security-Policy", isDocs ? DOCS_CSP : DEFAULT_CSP);
 
     next();

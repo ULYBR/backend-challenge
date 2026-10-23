@@ -61,7 +61,17 @@ export async function bootstrap(): Promise<INestApplication> {
 
   app.use((req: Request, _res: Response, next: NextFunction) => {
     const url = req.url;
-    if (url.startsWith("/wallets") || url.startsWith("/wagering") || url.startsWith("/providers")) {
+    if (url === "/v1/api/docs" || url === "/api/v1/docs") {
+      req.url = "/docs";
+    } else if (url.startsWith("/v1/api/docs/") || url.startsWith("/api/v1/docs/")) {
+      req.url = url.replace(/^\/(?:v1\/api|api\/v1)\/docs/, "/docs");
+    } else if (url.startsWith("/v1/api/")) {
+      req.url = url.replace(/^\/v1\/api\//, "/api/v1/");
+    } else if (
+      url.startsWith("/wallets") ||
+      url.startsWith("/wagering") ||
+      url.startsWith("/providers")
+    ) {
       req.url = `/api/v1${url}`;
     }
     next();
