@@ -1,3 +1,4 @@
+import { DocsController } from "@interfaces/http/docs.controller";
 import { DomainExceptionFilter } from "@interfaces/http/filters/domain-exception.filter";
 import { ProviderAuthGuard } from "@interfaces/http/guards/provider-auth.guard";
 import { RateLimitGuard } from "@interfaces/http/guards/rate-limit.guard";
@@ -9,7 +10,8 @@ import { type MiddlewareConsumer, Module, type NestModule } from "@nestjs/common
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 
 @Module({
-  controllers: [WalletsController, WageringTransactionsController],
+  controllers: [WalletsController, WageringTransactionsController, DocsController],
+
   providers: [
     RateLimitGuard,
     {

@@ -25,6 +25,9 @@ Detalhes do desenho estrutural e da topologia:
 | Identificadores | UUIDv7 gerado na aplicação (`Bun.randomUUIDv7()`) | [ADR-0004](docs/adr/0004-gerar-identificadores-com-uuidv7-na-aplicacao.md) |
 | Mensageria SQS | `@aws-sdk/client-sqs` + MiniStack (compatível com LocalStack via `AWS_ENDPOINT_URL`) | [ADR-0005](docs/adr/0005-adotar-ministack-como-emulador-sqs-padrao.md) |
 | Validação / Lint | Zod + Biome | [ADR-0002](docs/adr/0002-adotar-stack-base-bun-typescript-nestjs-postgres.md) |
+| Segurança e OWASP | RateLimitGuard (Sliding Window), SecurityHeadersMiddleware (HSTS, CSP), Trivy e Gitleaks | [ADR-0022](docs/adr/0022-mitigacao-owasp-api-security-e-rate-limiting.md) |
+| Documentação Interativa | OpenAPI 3.1 + Scalar Web View (`/docs`) | [DocsController](src/interfaces/http/docs.controller.ts) |
+
 
 ## 3. Modelo de dados e garantias no schema
 
@@ -183,3 +186,7 @@ O script [`src/interfaces/cli/load-test.ts`](src/interfaces/cli/load-test.ts) im
 4. **Monólito Modular Parametrizado (`APP_ROLE`) vs. Microsserviços Distribuídos**:
    - *Decisão*: Repositório único e imagem Docker única, executável em diferentes perfis (`api`, `consumer`, `outbox`, `scheduler` ou `all`).
    - *Trade-off*: Elimina o overhead de comunicação inter-serviços via RPC, múltiplos pipelines de CI/CD e proliferação de repositórios, permitindo escalar serviços de forma independente como Pods no Amazon EKS com baixo custo de manutenção.
+5. **Defesa em Profundidade OWASP e Rate Limiting (Sliding Window)**:
+   - *Decisão*: Rate limiting contextual por Provedor e rota na aplicação via `RateLimitGuard` + `SecurityHeadersMiddleware` (HSTS, CSP, etc.) + rate limit no Ingress.
+   - *Trade-off*: A janela deslizante em memória opera por réplica de pod, protegendo o banco contra ataques volumétricos com zero latência de rede adicional (sem exigir Redis externo), com interface preparada para adapter distribuído se necessário. Documentado em [ADR-0022](docs/adr/0022-mitigacao-owasp-api-security-e-rate-limiting.md).
+

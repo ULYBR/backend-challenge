@@ -10,7 +10,7 @@ export interface AuthenticatedHttpRequest extends Request {
   providerPrincipal?: AuthenticatedProviderPrincipalDto;
 }
 
-const PUBLIC_PATH_PREFIXES = ["/health", "/metrics"] as const;
+const PUBLIC_PATH_PREFIXES = ["/health", "/metrics", "/docs"] as const;
 
 @Injectable()
 export class ProviderAuthGuard implements CanActivate {
