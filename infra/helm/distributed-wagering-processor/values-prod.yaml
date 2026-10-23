@@ -1,0 +1,45 @@
+# Values for Production Environment
+global:
+  environment: production
+  awsRegion: us-east-1
+
+image:
+  tag: "prod-latest"
+  pullPolicy: IfNotPresent
+
+config:
+  nodeEnv: production
+  logLevel: info
+  dbHost: wagering-processor-production-pg-proxy.internal
+  dbPort: "5432"
+  dbName: wagering_processor
+  dbUser: wagering
+  sqsWagerQueueName: wagering-processor-production-transactions-inbound.fifo
+  sqsWagerDlqName: wagering-processor-production-transactions-dlq.fifo
+  sqsEventsQueueName: wagering-processor-production-wallet-events.fifo
+
+api:
+  replicaCount: 3
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 65
+
+consumer:
+  replicaCount: 2
+  keda:
+    enabled: true
+    minReplicaCount: 2
+    maxReplicaCount: 30
+    queueLengthTarget: 50
+
+outbox:
+  replicaCount: 2
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+
+scheduler:
+  replicaCount: 2

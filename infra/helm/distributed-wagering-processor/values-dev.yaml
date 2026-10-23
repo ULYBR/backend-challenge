@@ -1,0 +1,40 @@
+# Values for Development / Staging Environment
+global:
+  environment: development
+  awsRegion: us-east-1
+
+image:
+  tag: "dev-latest"
+  pullPolicy: Always
+
+config:
+  nodeEnv: development
+  logLevel: debug
+  dbHost: wagering-processor-dev-pg-proxy.internal
+  dbPort: "5432"
+  dbName: wagering_processor_dev
+  dbUser: wagering_dev
+  sqsWagerQueueName: wagering-processor-dev-transactions-inbound.fifo
+  sqsWagerDlqName: wagering-processor-dev-transactions-dlq.fifo
+  sqsEventsQueueName: wagering-processor-dev-wallet-events.fifo
+
+api:
+  replicaCount: 2
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+
+consumer:
+  replicaCount: 1
+  keda:
+    enabled: true
+    minReplicaCount: 1
+    maxReplicaCount: 5
+    queueLengthTarget: 20
+
+outbox:
+  replicaCount: 1
+
+scheduler:
+  replicaCount: 1

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "wagering.fullname" . }}-api
+  labels:
+    {{- include "wagering.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "wagering.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+

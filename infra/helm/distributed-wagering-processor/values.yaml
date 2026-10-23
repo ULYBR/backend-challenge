@@ -1,0 +1,114 @@
+global:
+  environment: production
+  awsRegion: us-east-1
+
+image:
+  repository: 123456789012.dkr.ecr.us-east-1.amazonaws.com/wagering-processor-app
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+config:
+  nodeEnv: production
+  logLevel: info
+  dbHost: wagering-processor-db-proxy.proxy-c123.us-east-1.rds.amazonaws.com
+  dbPort: "5432"
+  dbName: wagering_processor
+  dbUser: wagering
+  dbPoolMin: "5"
+  dbPoolMax: "20"
+  dbLockTimeoutMs: "5000"
+  sqsWagerQueueName: "wager-transactions.fifo"
+  sqsWagerDlqName: "wager-transactions-dlq.fifo"
+  sqsEventsQueueName: "wallet-events.fifo"
+  sqsConsumerName: "wager-transactions-consumer"
+  sqsMaxReceiveCount: "5"
+  outboxPollIntervalMs: "500"
+  outboxBatchSize: "50"
+  pendingRefPollIntervalMs: "1000"
+
+secrets:
+  dbPassword: "change-me-via-secret-store"
+
+api:
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
+  ingress:
+    enabled: true
+    className: alb
+    annotations:
+      alb.ingress.kubernetes.io/scheme: internet-facing
+      alb.ingress.kubernetes.io/target-type: ip
+      alb.ingress.kubernetes.io/healthcheck-path: /health/ready
+    hosts:
+      - host: wagering.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+
+consumer:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+  keda:
+    enabled: true
+    minReplicaCount: 2
+    maxReplicaCount: 30
+    queueLengthTarget: 50
+
+outbox:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+
+scheduler:
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+serviceAccount:
+  api:
+    create: true
+    annotations: {}
+  consumer:
+    create: true
+    annotations: {}
+  outbox:
+    create: true
+    annotations: {}
+  scheduler:
+    create: true
+    annotations: {}
+
+
