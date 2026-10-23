@@ -26,7 +26,7 @@ Detalhes do desenho estrutural e da topologia:
 | Mensageria SQS | `@aws-sdk/client-sqs` + MiniStack (compatível com LocalStack via `AWS_ENDPOINT_URL`) | [ADR-0005](docs/adr/0005-adotar-ministack-como-emulador-sqs-padrao.md) |
 | Validação / Lint | Zod + Biome | [ADR-0002](docs/adr/0002-adotar-stack-base-bun-typescript-nestjs-postgres.md) |
 | Segurança e OWASP | RateLimitGuard (Sliding Window), SecurityHeadersMiddleware (HSTS, CSP), Trivy e Gitleaks | [ADR-0022](docs/adr/0022-mitigacao-owasp-api-security-e-rate-limiting.md) |
-| Documentação Interativa | OpenAPI 3.1 + Scalar Web View (`/docs`) | [DocsController](src/interfaces/http/docs.controller.ts) |
+| Documentação Dual & Padrão de Rotas | OpenAPI 3.1 + ReDoc (3 colunas Zé Delivery em `/docs`) + Swagger UI interativo (`/docs/swagger`) + prefixo `/api/v1` | [ADR-0023](docs/adr/0023-adotar-prefixo-api-v1-e-documentacao-dual-redoc-swagger.md) · [RFC-0010](docs/rfc/RFC-0010-padronizacao-rotas-api-v1-e-documentacao-dual-redoc-swagger.md) |
 
 
 ## 3. Modelo de dados e garantias no schema
