@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wagering.fullname" . }}-outbox
+  labels:
+    {{- include "wagering.labels" . | nindent 4 }}
+    app.kubernetes.io/component: outbox
+spec:
+  replicas: {{ .Values.outbox.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "wagering.labels" . | nindent 6 }}
+      app.kubernetes.io/component: outbox
+  template:
+    metadata:
+      labels:
+        {{- include "wagering.labels" . | nindent 8 }}
+        app.kubernetes.io/component: outbox
+    spec:
+      serviceAccountName: {{ include "wagering.fullname" . }}-outbox
+      containers:
+        - name: outbox
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: APP_ROLE
+              value: "outbox"
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wagering.fullname" . }}-secret
+                  key: DB_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: {{ include "wagering.fullname" . }}-config
+          resources:
+            {{- toYaml .Values.outbox.resources | nindent 12 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wagering.fullname" . }}-scheduler
+  labels:
+    {{- include "wagering.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scheduler
+spec:
+  replicas: {{ .Values.scheduler.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "wagering.labels" . | nindent 6 }}
+      app.kubernetes.io/component: scheduler
+  template:
+    metadata:
+      labels:
+        {{- include "wagering.labels" . | nindent 8 }}
+        app.kubernetes.io/component: scheduler
+    spec:
+      serviceAccountName: {{ include "wagering.fullname" . }}-scheduler
+      containers:
+        - name: scheduler
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: APP_ROLE
+              value: "scheduler"
+            - name: INSTANCE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wagering.fullname" . }}-secret
+                  key: DB_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: {{ include "wagering.fullname" . }}-config
+          resources:
+            {{- toYaml .Values.scheduler.resources | nindent 12 }}
+
