@@ -19,6 +19,7 @@ updates:
           - "@faker-js/*"
           - "@types/*"
           - "typescript"
+          - "bun-types"
         update-types:
           - "minor"
           - "patch"
@@ -30,6 +31,7 @@ updates:
           - "@faker-js/*"
           - "@types/*"
           - "typescript"
+          - "bun-types"
         update-types:
           - "minor"
           - "patch"
