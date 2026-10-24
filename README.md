@@ -107,7 +107,7 @@ bun run dev
 
 A API estará respondendo em `http://localhost:3000`.
 
-- **Documentação Pública ReDoc (3 colunas, padrão Zé Delivery):** [`http://localhost:3000/docs`](http://localhost:3000/docs)
+- **Documentação Pública ReDoc:** [`http://localhost:3000/docs`](http://localhost:3000/docs)
 - **Documentação Operacional Swagger UI (interativa):** [`http://localhost:3000/docs/swagger`](http://localhost:3000/docs/swagger)
 - **Métricas Prometheus:** [`http://localhost:3000/metrics`](http://localhost:3000/metrics)
 - **Health Checks:** [`http://localhost:3000/health/live`](http://localhost:3000/health/live) e [`http://localhost:3000/health/ready`](http://localhost:3000/health/ready)
