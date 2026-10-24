@@ -11,7 +11,7 @@ rfc: RFC-0010
 
 A Seção 9 de `docs/challenge/CHALLENGE.md` define as operações REST da carteira e transações financeiras (`/wallets`, `/wagering/transactions`).
 No entanto, no mercado financeiro e de iGaming, APIs produtivas utilizam namespaces versionados explícitos (`/api/v1/...`) para segregação de ciclo de vida e proteção contra breaking changes.
-Além disso, a documentação pública para desenvolvedores de provedores de jogos requer um padrão visual de excelência (3 colunas, geração de cURL, tipagem detalhada de schemas — padrão ReDoc utilizado por empresas como Zé Delivery, Docker e Ambev), enquanto engenheiros e avaliadores necessitam de um console interativo operacional (Swagger UI com o recurso *"Try it out"*).
+Além disso, a documentação pública para desenvolvedores de provedores de jogos requer um padrão visual de excelência (3 colunas, geração de cURL, tipagem detalhada de schemas — padrão ReDoc utilizado por empresas de tecnologia e fintechs como Docker e Stripe), enquanto engenheiros e avaliadores necessitam de um console interativo operacional (Swagger UI com o recurso *"Try it out"*).
 
 ## Drivers da decisão
 
@@ -31,7 +31,7 @@ Além disso, a documentação pública para desenvolvedores de provedores de jog
 
 Escolhemos a **Opção 3**:
 1. Adotar `/api/v1` como prefixo global do NestJS com middleware de rewrite transparente para chamadas legadas.
-2. Expor o ReDoc standalone oficial em `GET /docs` (layout de 3 colunas padrão Zé Delivery) com âncoras `#operation/...`.
+2. Expor o ReDoc standalone oficial em `GET /docs` (layout de 3 colunas padrão Stripe/Redocly) com âncoras `#operation/...`.
 3. Expor o Swagger UI 5.x em `GET /docs/swagger` para execução interativa.
 4. Ajustar o `SecurityHeadersMiddleware` para suportar `worker-src 'self' blob:` nas rotas `/docs*`.
 
@@ -41,7 +41,7 @@ Escolhemos a **Opção 3**:
 
 - Rotas de negócio padronizadas e versionadas conforme boas práticas de mercado.
 - Compatibilidade reversa integral para chamadas legadas em `/wallets` e `/wagering`.
-- Apresentação técnica de alto nível no estilo Zé Delivery com deep linking preciso.
+- Apresentação técnica de alto nível no padrão 3 colunas com deep linking preciso.
 - Capacidade do avaliador testar payloads diretamente no navegador via Swagger UI.
 - Código limpo, tipado e sem templates manuais misturados em classes do NestJS.
 

@@ -3,7 +3,7 @@ import type {
   SecurityAuditAccessEventDto,
 } from "@application/dto/audit-trail.dto";
 import type { AuditTrailPort } from "@application/ports/audit-trail.port";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional } from "@nestjs/common";
 
 const DEFAULT_BUFFER_CAPACITY = 10_000;
 const DEFAULT_QUERY_LIMIT = 50;
@@ -14,8 +14,8 @@ export class InMemoryRingBufferAuditTrailAdapter implements AuditTrailPort {
   private readonly buffer: SecurityAuditAccessEventDto[] = [];
   private readonly capacity: number;
 
-  constructor(capacity: number = DEFAULT_BUFFER_CAPACITY) {
-    this.capacity = capacity;
+  constructor(@Optional() capacity?: number) {
+    this.capacity = capacity ?? DEFAULT_BUFFER_CAPACITY;
   }
 
   async record(event: SecurityAuditAccessEventDto): Promise<void> {
