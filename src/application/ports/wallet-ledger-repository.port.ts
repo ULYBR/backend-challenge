@@ -1,11 +1,7 @@
-import { LedgerCursorPayload } from "@application/shared/ledger-cursor.codec";
-import { WalletLedgerEntry } from "@domain/wallet/wallet-ledger-entry";
+import type { ListLedgerByCursorOptions } from "@application/ports/wallet-ledger-repository.types";
+import type { WalletLedgerEntry } from "@domain/wallet/wallet-ledger-entry";
 
-export interface ListLedgerByCursorOptions {
-  readonly walletId: string;
-  readonly limit: number;
-  readonly cursor?: LedgerCursorPayload | undefined;
-}
+export type { ListLedgerByCursorOptions };
 
 export interface WalletLedgerRepositoryPort {
   insert(entry: WalletLedgerEntry): Promise<void>;

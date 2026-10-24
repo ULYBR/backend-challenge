@@ -6,14 +6,11 @@ import { TOKENS } from "@application/ports/tokens";
 import { type SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import type { OutboxMessage } from "@domain/messaging/outbox-message";
 import type { AppEnv } from "@infrastructure/config/env";
+import type { OutboxPublishBatchResultDto } from "@infrastructure/messaging/outbox-worker.types";
 import type { SqsQueueRegistry } from "@infrastructure/messaging/sqs.module";
 import { Inject, Injectable, type OnApplicationShutdown, type OnModuleInit } from "@nestjs/common";
 
-export interface OutboxPublishBatchResultDto {
-  readonly claimed: number;
-  readonly published: number;
-  readonly failed: number;
-}
+export type { OutboxPublishBatchResultDto };
 
 @Injectable()
 export class OutboxPublisherWorker implements OnModuleInit, OnApplicationShutdown {

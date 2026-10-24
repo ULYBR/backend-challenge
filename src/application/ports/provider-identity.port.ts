@@ -1,13 +1,9 @@
-export interface ProviderAuthenticationInputDto {
-  readonly authorizationHeader?: string | undefined;
-  readonly providerIdHeader?: string | undefined;
-}
+import type {
+  AuthenticatedProviderPrincipalDto,
+  ProviderAuthenticationInputDto,
+} from "@application/dto/provider-identity.dto";
 
-export interface AuthenticatedProviderPrincipalDto {
-  readonly providerId: string;
-  readonly clientId: string;
-  readonly scopes: readonly string[];
-}
+export type { AuthenticatedProviderPrincipalDto, ProviderAuthenticationInputDto };
 
 export interface ProviderIdentityPort {
   authenticate(input: ProviderAuthenticationInputDto): Promise<AuthenticatedProviderPrincipalDto>;

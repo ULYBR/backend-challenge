@@ -1,8 +1,10 @@
+import { AdminAuditController } from "@interfaces/http/admin-audit.controller";
 import { DocsController } from "@interfaces/http/docs.controller";
 import { DomainExceptionFilter } from "@interfaces/http/filters/domain-exception.filter";
 import { ProviderAuthGuard } from "@interfaces/http/guards/provider-auth.guard";
 import { RateLimitGuard } from "@interfaces/http/guards/rate-limit.guard";
 import { CorrelationIdInterceptor } from "@interfaces/http/interceptors/correlation-id.interceptor";
+import { AuditLoggingMiddleware } from "@interfaces/http/middlewares/audit-logging.middleware";
 import { SecurityHeadersMiddleware } from "@interfaces/http/middlewares/security-headers.middleware";
 import { WageringTransactionsController } from "@interfaces/http/wagering-transactions.controller";
 import { WalletsController } from "@interfaces/http/wallets.controller";
@@ -10,10 +12,16 @@ import { type MiddlewareConsumer, Module, type NestModule } from "@nestjs/common
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 
 @Module({
-  controllers: [WalletsController, WageringTransactionsController, DocsController],
+  controllers: [
+    WalletsController,
+    WageringTransactionsController,
+    DocsController,
+    AdminAuditController,
+  ],
 
   providers: [
     RateLimitGuard,
+    AuditLoggingMiddleware,
     {
       provide: APP_GUARD,
       useClass: ProviderAuthGuard,
@@ -34,6 +42,6 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 })
 export class HttpApiModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(SecurityHeadersMiddleware).forRoutes("*");
+    consumer.apply(SecurityHeadersMiddleware, AuditLoggingMiddleware).forRoutes("*");
   }
 }

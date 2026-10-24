@@ -1,16 +1,9 @@
 import { InboxRepositoryPort } from "@application/ports/inbox-repository.port";
 import { InboxMessage } from "@domain/messaging/inbox-message";
 import { DuplicateInboxMessageError } from "@domain/shared/domain-errors";
+import type { InboxMessageSqlRow } from "@infrastructure/persistence/persistence.types";
 import { PostgresErrorHelper } from "@infrastructure/persistence/postgres-error.helper";
 import { EntityManager } from "@mikro-orm/postgresql";
-
-interface InboxMessageSqlRow {
-  readonly consumer_name: string;
-  readonly message_id: string;
-  readonly payload_hash: string;
-  readonly received_at: Date | string;
-  readonly processed_at: Date | string | null;
-}
 
 export class MikroOrmInboxRepository implements InboxRepositoryPort {
   constructor(private readonly em: EntityManager) {}

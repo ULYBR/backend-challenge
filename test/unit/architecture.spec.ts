@@ -66,8 +66,8 @@ describe("Hexagonal Architecture & Code Style Guardrails", () => {
     }
   });
 
-  it("ensures src/ files contain zero inline or block comments", () => {
-    const files = listTypeScriptFiles(srcDir);
+  it("ensures src/ and test/ files contain zero inline or block comments", () => {
+    const files = [...listTypeScriptFiles(srcDir), ...listTypeScriptFiles(testDir)];
     const commentLineRegex = /^\s*(\/\/|\/\*|\*)/m;
 
     for (const file of files) {
@@ -83,6 +83,26 @@ describe("Hexagonal Architecture & Code Style Guardrails", () => {
     for (const file of files) {
       const content = readFileSync(file, "utf-8");
       expect(relativeImportRegex.test(content)).toBe(false);
+    }
+  });
+
+  it("ensures production code in src/ contains zero chained else if statements", () => {
+    const files = listTypeScriptFiles(srcDir);
+    const chainedElseIfRegex = /\belse\s+if\b/;
+
+    for (const file of files) {
+      const content = readFileSync(file, "utf-8");
+      expect(chainedElseIfRegex.test(content)).toBe(false);
+    }
+  });
+
+  it("ensures production code in src/ contains zero any types", () => {
+    const files = listTypeScriptFiles(srcDir);
+    const anyTypeRegex = /:\s*any\b|<any>|\bas\s+any\b|\bArray<any>/;
+
+    for (const file of files) {
+      const content = readFileSync(file, "utf-8");
+      expect(anyTypeRegex.test(content)).toBe(false);
     }
   });
 });

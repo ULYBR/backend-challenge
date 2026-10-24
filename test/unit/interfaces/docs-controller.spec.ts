@@ -32,6 +32,7 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
     );
     const rawPaths = spec.paths as Record<string, unknown>;
     expect(rawPaths["/v1/api/wallets/{id}/reconcile"]).toBeUndefined();
+    expect(rawPaths["/v1/api/admin/audit"]).toBeUndefined();
     expect(rawPaths["/health/live"]).toBeUndefined();
     expect(rawPaths["/metrics"]).toBeUndefined();
   });
@@ -82,6 +83,8 @@ describe("DocsController (Interactive Web OpenAPI Documentation)", () => {
     expect(
       reconcileResponses["200"].content["application/json"].examples.divergenceCorrected,
     ).toBeDefined();
+    expect(spec.paths["/v1/api/admin/audit"]).toBeDefined();
+    expect(spec.paths["/v1/api/admin/audit/wallets/{id}"]).toBeDefined();
     expect(spec.paths["/health/live"]).toBeDefined();
     expect(spec.paths["/metrics"]).toBeDefined();
   });

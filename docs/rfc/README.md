@@ -15,4 +15,5 @@ Template em [0000-template.md](0000-template.md). Ciclo de vida: `Draft → In R
 | [RFC-0008](RFC-0008-observabilidade-metricas-logs-e-health.md) | Observabilidade com métricas Prometheus (`/metrics`), logs JSON estruturados e health checks | Implemented | 9 |
 | [RFC-0009](RFC-0009-suite-concorrencia-multi-instancia-e-teste-de-carga.md) | Suíte completa de concorrência multi-instância (8 cenários da Seção 13) e benchmark de carga | Implemented | 11 |
 | [RFC-0010](RFC-0010-padronizacao-rotas-api-v1-e-documentacao-dual-redoc-swagger.md) | Padronização de rotas RESTful com prefixo /api/v1 e documentação dual ReDoc e Swagger UI | Implemented | 10 |
-| [RFC-0011](RFC-0011-diagramas-de-fluxo-na-documentacao-openapi.md) | Diagramas de Fluxo e Sequência na Documentação OpenAPI (ReDoc & Swagger) | Accepted | 14 |
+| [RFC-0011](RFC-0011-diagramas-de-fluxo-na-documentacao-openapi.md) | Diagramas de Fluxo e Sequência na Documentação OpenAPI (ReDoc & Swagger) | Implemented | 14 |
+| [RFC-0012](RFC-0012-trilha-de-auditoria-fiscalizatoria-e-observabilidade-opentelemetry-datadog.md) | Trilha de Auditoria Fiscalizatória em Parquet/Athena e Observabilidade Unificada com OpenTelemetry e Datadog | Implemented | 15 |

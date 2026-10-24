@@ -15,4 +15,5 @@ export const TOKENS = {
   OUTBOX_REPOSITORY: Symbol.for("OUTBOX_REPOSITORY"),
   PROVIDER_IDENTITY_PORT: Symbol.for("PROVIDER_IDENTITY_PORT"),
   METRICS: Symbol.for("METRICS"),
+  AUDIT_TRAIL_PORT: Symbol.for("AUDIT_TRAIL_PORT"),
 } as const;

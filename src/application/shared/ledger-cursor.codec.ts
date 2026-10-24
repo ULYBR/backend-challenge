@@ -1,9 +1,7 @@
+import type { LedgerCursorPayload } from "@application/shared/ledger-cursor.types";
 import { InvalidPaginationCursorError } from "@domain/shared/domain-errors";
 
-export interface LedgerCursorPayload {
-  readonly createdAt: string;
-  readonly id: string;
-}
+export type { LedgerCursorPayload };
 
 export class LedgerCursorCodec {
   private constructor() {}
