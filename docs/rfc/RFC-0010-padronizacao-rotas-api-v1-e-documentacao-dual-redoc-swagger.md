@@ -16,7 +16,7 @@ adrs: [0023]
 Este RFC define a evolução dos contratos de transporte HTTP da API para seguir os padrões rigorosos de engenharia de software e mercado em iGaming e serviços financeiros:
 1. Versionamento explícito de namespace via prefixo canônico `/api/v1/` para todas as operações de negócio (`/api/v1/wallets`, `/api/v1/wagering/transactions`, etc.), com middleware de compatibilidade reversa transparente para requisições legadas.
 2. Documentação dual sem templates HTML embutidos em controllers do backend:
-   - **`GET /docs` (ReDoc)**: layout responsivo de 3 colunas padrão Zé Delivery / Docker / Stripe, com deep-linking (`#operation/...`) e geração de cURL para apresentação técnica e desenvolvedores de provedores de jogos.
+   - **`GET /docs` (ReDoc)**: layout responsivo de 3 colunas padrão Redocly / Docker / Stripe, com deep-linking (`#operation/...`) e geração de cURL para apresentação técnica e desenvolvedores de provedores de jogos.
    - **`GET /docs/swagger` (Swagger UI)**: console operacional com botão interativo *"Try it out"* para testes rápidos por avaliadores e engenheiros.
    - **`GET /docs/openapi.json`**: especificação OpenAPI 3.1 tipada e canônica consumida por ambos os motores.
 
@@ -27,14 +27,14 @@ No entanto, em ambientes produtivos de alto nível:
 - Endpoints na raiz sem versionamento impedem evolução não-destrutiva de contratos de API. O padrão de mercado exige `/api/v1/...` para segregação de ciclo de vida.
 - Roteamento de probes de orquestração (Kubernetes / AWS ALB em `/health/live`, `/health/ready` e `/metrics`) não deve se misturar com o tráfego de negócio dos provedores.
 - Templates HTML acoplados e strings manuais dentro de controllers NestJS (`docs.controller.ts`) constituem anti-pattern ("HTML embutido em backend"), gerando fragilidade visual e bloqueios por Content Security Policy (CSP).
-- Documentações corporativas modernas (como a do Zé Delivery) adotam o **ReDoc** para especificação pública de alto padrão de leitura, enquanto o **Swagger UI** supre a necessidade de console interativo de execução direta.
+- Documentações corporativas modernas adotam o **ReDoc** para especificação pública de alto padrão de leitura, enquanto o **Swagger UI** supre a necessidade de console interativo de execução direta.
 
 ## 3. Objetivos e não-objetivos
 
 **Objetivos**
 - Estabelecer `/api/v1` como prefixo global do NestJS para todos os controllers de aplicação.
 - Fornecer middleware de rewrite de compatibilidade reversa para requisições em `/wallets` e `/wagering` sem quebrar clientes legados ou testes do desafio.
-- Expor `/docs` com ReDoc standalone oficial em 3 colunas idêntico ao padrão Zé Delivery (`seller-public-api.ze.delivery/docs#operation/...`).
+- Expor `/docs` com ReDoc standalone oficial em 3 colunas padrão Redocly/Stripe com deep-linking (`#operation/...`).
 - Expor `/docs/swagger` com Swagger UI interativo para execução com *"Try it out"*.
 - Atualizar o `SecurityHeadersMiddleware` para autorizar estritamente os scripts e web workers do ReDocly e Swagger UI apenas nas rotas `/docs*`, mantendo política `default-src 'none'` para rotas financeiras.
 
