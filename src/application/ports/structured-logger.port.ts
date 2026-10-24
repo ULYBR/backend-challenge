@@ -1,17 +1,9 @@
-export interface LogTelemetryContext {
-  readonly correlationId?: string | undefined;
-  readonly causationId?: string | undefined;
-  readonly messageId?: string | undefined;
-  readonly transactionId?: string | undefined;
-  readonly walletId?: string | undefined;
-  readonly providerId?: string | undefined;
-  readonly roundId?: string | undefined;
-}
+import type {
+  LogEventPayload,
+  LogTelemetryContext,
+} from "@application/ports/structured-logger.types";
 
-export interface LogEventPayload extends LogTelemetryContext {
-  readonly event: string;
-  readonly [key: string]: unknown;
-}
+export type { LogEventPayload, LogTelemetryContext };
 
 export interface StructuredLoggerPort {
   info(payload: LogEventPayload, message?: string): void;

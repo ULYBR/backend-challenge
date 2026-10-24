@@ -1,17 +1,9 @@
-export interface PostgresErrorMetadata {
-  readonly code?: string | undefined;
-  readonly constraint?: string | undefined;
-  readonly detail?: string | undefined;
-  readonly message: string;
-}
+import type {
+  PostgresErrorMetadata,
+  RawPgError,
+} from "@infrastructure/persistence/persistence.types";
 
-interface RawPgError {
-  readonly code?: unknown;
-  readonly constraint?: unknown;
-  readonly detail?: unknown;
-  readonly message?: unknown;
-  readonly cause?: unknown;
-}
+export type { PostgresErrorMetadata };
 
 export class PostgresErrorHelper {
   private constructor() {}

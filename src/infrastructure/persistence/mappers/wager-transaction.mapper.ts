@@ -5,32 +5,10 @@ import {
   WagerTransactionKind,
   WagerTransactionStatus,
 } from "@domain/wagering/wager-transaction";
+import type { WagerTransactionSqlRow } from "@infrastructure/persistence/persistence.types";
 import { WagerTransactionRecord } from "@infrastructure/persistence/schemas/wager-transaction.schema";
 
-export interface WagerTransactionSqlRow {
-  readonly id: string;
-  readonly provider_id: string;
-  readonly external_transaction_id: string;
-  readonly idempotency_key: string;
-  readonly payload_hash: string;
-  readonly wallet_id: string;
-  readonly player_id: string;
-  readonly round_id: string;
-  readonly game_id: string;
-  readonly kind: string;
-  readonly amount: string;
-  readonly currency: string;
-  readonly reference_external_transaction_id: string | null;
-  readonly reference_transaction_id: string | null;
-  readonly status: string;
-  readonly failure_code: string | null;
-  readonly recorded_balance: string | null;
-  readonly reference_attempts: number;
-  readonly next_reference_attempt_at: Date | string | null;
-  readonly created_at: Date | string;
-  readonly processed_at: Date | string | null;
-  readonly updated_at: Date | string;
-}
+export type { WagerTransactionSqlRow };
 
 export class WagerTransactionMapper {
   private constructor() {}

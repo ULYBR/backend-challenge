@@ -7,6 +7,7 @@ import { SqsModule } from "@infrastructure/messaging/sqs.module";
 import { PrometheusMetricsAdapter } from "@infrastructure/observability/prometheus-metrics.adapter";
 import { PinoStructuredLoggerAdapter } from "@infrastructure/observability/structured-logger.adapter";
 import { DatabaseModule } from "@infrastructure/persistence/database.module";
+import { InMemoryRingBufferAuditTrailAdapter } from "@infrastructure/security/in-memory-ring-buffer-audit-trail.adapter";
 import { NoopProviderIdentityAdapter } from "@infrastructure/security/noop-provider-identity.adapter";
 import { SystemClockAdapter } from "@infrastructure/system/system-clock.adapter";
 import { UuidV7Generator } from "@infrastructure/system/uuid-v7.generator";
@@ -76,6 +77,11 @@ export class AppModule {
           provide: TOKENS.PROVIDER_IDENTITY_PORT,
           useClass: NoopProviderIdentityAdapter,
         },
+        {
+          provide: TOKENS.AUDIT_TRAIL_PORT,
+          useFactory: (): InMemoryRingBufferAuditTrailAdapter =>
+            new InMemoryRingBufferAuditTrailAdapter(),
+        },
       ],
       exports: [
         TOKENS.APP_ENV,
@@ -84,6 +90,7 @@ export class AppModule {
         TOKENS.ID_GENERATOR,
         TOKENS.METRICS,
         TOKENS.PROVIDER_IDENTITY_PORT,
+        TOKENS.AUDIT_TRAIL_PORT,
       ],
     };
   }

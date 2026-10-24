@@ -6,13 +6,10 @@ import {
   SQSClient,
 } from "@aws-sdk/client-sqs";
 import { AppEnv } from "@infrastructure/config/env";
+import type { SqsQueueUrls } from "@infrastructure/messaging/sqs.types";
 import { Global, Inject, Module, OnApplicationShutdown } from "@nestjs/common";
 
-export interface SqsQueueUrls {
-  readonly wagerQueueUrl: string;
-  readonly wagerDlqUrl: string;
-  readonly eventsQueueUrl: string;
-}
+export type { SqsQueueUrls };
 
 export class SqsQueueRegistry {
   private cachedUrls: SqsQueueUrls | undefined;
@@ -64,12 +61,13 @@ export class SqsQueueRegistry {
       isEventsFifo ? { FifoQueue: "true", ContentBasedDeduplication: "false" } : {},
     );
 
-    this.cachedUrls = {
+    const urls: SqsQueueUrls = {
       wagerQueueUrl,
       wagerDlqUrl,
       eventsQueueUrl,
     };
-    return this.cachedUrls;
+    this.cachedUrls = urls;
+    return urls;
   }
 
   async checkReadiness(): Promise<SqsQueueUrls> {

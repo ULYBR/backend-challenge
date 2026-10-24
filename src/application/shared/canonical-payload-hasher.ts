@@ -1,19 +1,9 @@
 import { createHash } from "node:crypto";
+import type { CanonicalWagerPayloadInput } from "@application/shared/canonical-payload-hasher.types";
 import { Money } from "@domain/shared/money";
-import { MoneyProps } from "@domain/shared/money.types";
 import { WagerTransactionKind } from "@domain/wagering/wager-transaction.types";
 
-export interface CanonicalWagerPayloadInput {
-  readonly providerId: string;
-  readonly externalTransactionId: string;
-  readonly walletId: string;
-  readonly playerId: string;
-  readonly roundId: string;
-  readonly gameId: string;
-  readonly kind: WagerTransactionKind;
-  readonly money: MoneyProps;
-  readonly referenceExternalTransactionId?: string | undefined;
-}
+export type { CanonicalWagerPayloadInput };
 
 export class CanonicalPayloadHasher {
   private constructor() {}

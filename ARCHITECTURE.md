@@ -209,4 +209,24 @@ Documentado em:
 - [RFC-0011 — Diagramas de Fluxo e Sequência na Documentação OpenAPI](docs/rfc/RFC-0011-diagramas-de-fluxo-na-documentacao-openapi.md)
 - [ADR-0023 — Adotar Prefixo `/api/v1` e `/v1/api` com Compatibilidade Dual e Documentação ReDoc e Swagger](docs/adr/0023-adotar-prefixo-api-v1-e-documentacao-dual-redoc-swagger.md)
 - [ADR-0024 — Incluir Diagramas de Fluxo e Sequência na Documentação OpenAPI](docs/adr/0024-incluir-diagramas-de-fluxo-na-documentacao-openapi.md)
+- [ADR-0025 — Auto-Merge Seguro do Dependabot para Atualizações de Dependências sem Impacto em Fluxos de Negócio](docs/adr/0025-auto-merge-dependabot-para-atualizacoes-seguras-sem-impacto-em-fluxo.md)
+
+## 15. Trilha de Auditoria Fiscalizatória em Parquet/Athena e Observabilidade OpenTelemetry/Datadog
+
+Para conformidade regulatória fiscalizatória (compliance de apostas e auditoria contábil externa) sem degradar o banco transacional PostgreSQL OLTP:
+
+1. **Trilha de Auditoria em Runtime (`AuditLoggingMiddleware` + `InMemoryRingBufferAuditTrailAdapter` + `AdminAuditController`)**:
+   - Cada requisição é capturada com atributos de conformidade: `providerId`, `clientId`, `clientIp` (com parsing seguro de proxies via `x-forwarded-for`), método, rota, status code, latência em ms, `correlationId`, `traceId`, `spanId` e `userAgent`.
+   - Consulta fiscalizatória em tempo real via endpoint administrativo protegido `GET /api/v1/admin/audit`, com suporte a filtros combinados (`providerId`, `walletId`, `clientIp`, `statusCode`, `since`, `limit`).
+2. **Armazenamento Frio em Formato Colunar Parquet e Consultas SQL no AWS Athena (`infra/terraform/audit.tf`)**:
+   - Infraestrutura como Código provisiona bucket S3 corporativo (`distributed-wagering-audit-trail-<env>`) com ciclo de vida (transição para Glacier após 90 dias e expiração em 5 anos).
+   - Catálogo AWS Glue e tabela externa particionada por `year/month/day`, permitindo auditorias fiscais com consultas SQL ANSI serverless via Amazon Athena com escaneamento mínimo de bytes e custo reduzido.
+3. **Observabilidade Unificada com OpenTelemetry e Datadog APM**:
+   - Interceptor W3C Trace Context (`CorrelationIdInterceptor`) que processa e propaga cabeçalhos `traceparent` (`00-<traceId>-<spanId>-<traceFlags>`).
+   - Mapeamento determinístico entre identificadores W3C (128-bit trace ID e 64-bit span ID) e logs estruturados em JSON, permitindo correlação automática bi-direcional nos consoles do Datadog APM e CloudWatch.
+
+Documentado em:
+- [RFC-0012 — Trilha de Auditoria Fiscalizatória em Parquet/Athena e Observabilidade Unificada com OpenTelemetry e Datadog](docs/rfc/RFC-0012-trilha-de-auditoria-fiscalizatoria-e-observabilidade-opentelemetry-datadog.md)
+- [ADR-0026 — Trilha de Auditoria Fiscalizatória de Acessos via S3 Parquet, Athena e Endpoint Administrativo](docs/adr/0026-trilha-de-auditoria-fiscalizatoria-via-s3-parquet-athena-e-endpoint-administrativo.md)
+- [ADR-0027 — Observabilidade e Tracing Distribuído com Padrão OpenTelemetry e Datadog APM](docs/adr/0027-observabilidade-e-tracing-distribuido-com-opentelemetry-e-datadog.md)
 

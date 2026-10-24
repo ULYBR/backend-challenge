@@ -1,20 +1,10 @@
 import { Money } from "@domain/shared/money";
 import { LedgerDirection } from "@domain/wallet/ledger-direction";
 import { WalletLedgerEntry } from "@domain/wallet/wallet-ledger-entry";
+import type { WalletLedgerEntrySqlRow } from "@infrastructure/persistence/persistence.types";
 import { WalletLedgerEntryRecord } from "@infrastructure/persistence/schemas/wallet-ledger-entry.schema";
 
-export interface WalletLedgerEntrySqlRow {
-  readonly id: string;
-  readonly wallet_id: string;
-  readonly transaction_id: string;
-  readonly wallet_version: number;
-  readonly direction: string;
-  readonly amount: string;
-  readonly currency: string;
-  readonly balance_before: string;
-  readonly balance_after: string;
-  readonly created_at: Date | string;
-}
+export type { WalletLedgerEntrySqlRow };
 
 export class WalletLedgerEntryMapper {
   private constructor() {}

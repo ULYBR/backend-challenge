@@ -285,6 +285,50 @@ const SCHEMAS = {
       totalLedgerEntries: { type: "integer", example: 42 },
     },
   },
+  SecurityAuditEventResponse: {
+    type: "object",
+    required: [
+      "id",
+      "timestamp",
+      "clientIp",
+      "method",
+      "path",
+      "statusCode",
+      "durationMs",
+      "correlationId",
+      "userAgent",
+    ],
+    properties: {
+      id: { type: "string", example: "019488a0-7777-7000-8000-000000000001" },
+      timestamp: { type: "string", example: "2026-10-23T19:30:00.000Z" },
+      clientIp: { type: "string", example: "192.168.1.100" },
+      providerId: { type: "string", nullable: true, example: "provider-evolution" },
+      method: { type: "string", example: "POST" },
+      path: { type: "string", example: "/api/v1/wagering/transactions" },
+      statusCode: { type: "integer", example: 201 },
+      durationMs: { type: "integer", example: 12 },
+      correlationId: { type: "string", example: "019488a0-1111-7000-8000-000000000001" },
+      traceId: { type: "string", nullable: true, example: "4bf92f3577b34da6a3ce929d0e0e4736" },
+      spanId: { type: "string", nullable: true, example: "00f067aa0ba902b7" },
+      userAgent: { type: "string", example: "curl/8.7.1" },
+      walletId: {
+        type: "string",
+        nullable: true,
+        example: "019488a0-1111-7000-8000-000000000001",
+      },
+    },
+  },
+  AuditLogQueryResponse: {
+    type: "object",
+    required: ["total", "events"],
+    properties: {
+      total: { type: "integer", example: 1 },
+      events: {
+        type: "array",
+        items: { $ref: "#/components/schemas/SecurityAuditEventResponse" },
+      },
+    },
+  },
 };
 
 const COMMON_SERVERS = [
@@ -299,9 +343,9 @@ const PUBLIC_PATHS = {
     post: {
       tags: ["Wallets"],
       summary: "Open a new player wallet",
-      description: `Creates a new player wallet with positive initialBalance, initializing an OPENING transaction and genesis ledger entry at version 1.
+      description: `Opens a new player wallet with an initial balance. Every balance mutation produces an immutable ledger entry with strict monotonic versioning for auditability.
 
-![Fluxo de Sequência da Abertura de Carteira](/v1/api/docs/diagrams/wallet-flow.svg)`,
+![Ciclo de Vida da Carteira](/v1/api/docs/diagrams/wallet-flow.svg)`,
       operationId: "openWallet",
       requestBody: {
         required: true,
@@ -471,9 +515,9 @@ const PUBLIC_PATHS = {
     get: {
       tags: ["Wallets"],
       summary: "List immutable wallet ledger entries",
-      description: `Extracts immutable append-only ledger entries using deterministic base64 keyset cursor pagination over (createdAt, id).
+      description: `Extracts immutable financial ledger entries using deterministic base64 cursor pagination. Every debit and credit includes prior and resulting balances for accounting audits.
 
-![Fluxo de Paginação do Razão](/v1/api/docs/diagrams/ledger-flow.svg)`,
+![Fluxo de Paginação do Extrato](/v1/api/docs/diagrams/ledger-flow.svg)`,
       operationId: "listWalletLedger",
       parameters: [
         {
@@ -570,9 +614,9 @@ const PUBLIC_PATHS = {
     post: {
       tags: ["Wagering"],
       summary: "Process a wagering transaction (BET, WIN, LOSS, REFUND, ROLLBACK)",
-      description: `Processes financial betting operations (BET, WIN, LOSS, REFUND, ROLLBACK) with persistent idempotency, pessimistic row-level locking, append-only ledger entries, transactional outbox events, and out-of-order pending reference resolution.
+      description: `Processes financial betting operations (BET, WIN, LOSS, REFUND, ROLLBACK) with atomic real-time execution, strict idempotency via unique key (\`idempotencyKey\`), and automatic resolution of out-of-order reference operations.
 
-![Fluxo de Transação Financeira](/v1/api/docs/diagrams/wagering-flow.svg)`,
+![Ciclo de Vida de Transações de Apostas](/v1/api/docs/diagrams/wagering-flow.svg)`,
       operationId: "processWagerTransaction",
       headers: {
         "X-Provider-Id": {
@@ -1092,6 +1136,63 @@ const PRIVATE_PATHS = {
                   message: "Wallet '019488a0-0000-0000-0000-000000000000' not found",
                 },
               },
+            },
+          },
+        },
+      },
+    },
+  },
+  "/v1/api/admin/audit": {
+    get: {
+      tags: ["Operations & Audit"],
+      summary: "Query security access audit log trail",
+      description:
+        "Inspects runtime security access log events. Supports filtering by providerId, walletId, clientIp, statusCode, since (ISO timestamp), and limit.",
+      parameters: [
+        { name: "providerId", in: "query", schema: { type: "string" }, required: false },
+        { name: "walletId", in: "query", schema: { type: "string" }, required: false },
+        { name: "clientIp", in: "query", schema: { type: "string" }, required: false },
+        { name: "statusCode", in: "query", schema: { type: "integer" }, required: false },
+        { name: "since", in: "query", schema: { type: "string" }, required: false },
+        {
+          name: "limit",
+          in: "query",
+          schema: { type: "integer", default: 50, maximum: 200 },
+          required: false,
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Audit trail log page retrieved",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/AuditLogQueryResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+  "/v1/api/admin/audit/wallets/{id}": {
+    get: {
+      tags: ["Operations & Audit"],
+      summary: "Query wallet-specific security access audit events",
+      parameters: [
+        { name: "id", in: "path", schema: { type: "string" }, required: true },
+        { name: "since", in: "query", schema: { type: "string" }, required: false },
+        {
+          name: "limit",
+          in: "query",
+          schema: { type: "integer", default: 50, maximum: 200 },
+          required: false,
+        },
+      ],
+      responses: {
+        "200": {
+          description: "Wallet audit events retrieved",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/AuditLogQueryResponse" },
             },
           },
         },

@@ -1,16 +1,9 @@
 import { Money } from "@domain/shared/money";
 import { Wallet } from "@domain/wallet/wallet";
+import type { WalletSqlRow } from "@infrastructure/persistence/persistence.types";
 import { WalletRecord } from "@infrastructure/persistence/schemas/wallet.schema";
 
-export interface WalletSqlRow {
-  readonly id: string;
-  readonly player_id: string;
-  readonly currency: string;
-  readonly balance: string;
-  readonly version: number;
-  readonly created_at: Date | string;
-  readonly updated_at: Date | string;
-}
+export type { WalletSqlRow };
 
 export class WalletMapper {
   private constructor() {}

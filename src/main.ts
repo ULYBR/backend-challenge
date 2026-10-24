@@ -3,6 +3,7 @@ import type { StructuredLoggerPort } from "@application/ports/structured-logger.
 import { TOKENS } from "@application/ports/tokens";
 import { AppEnv, parseEnv } from "@infrastructure/config/env";
 import { SqsQueueRegistry } from "@infrastructure/messaging/sqs.module";
+import type { MikroORM } from "@mikro-orm/postgresql";
 import { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "@src/app.module";
@@ -59,20 +60,17 @@ export async function bootstrap(): Promise<INestApplication> {
     ],
   });
 
+  const URL_REWRITE_RULES: readonly { readonly pattern: RegExp; readonly replacement: string }[] = [
+    { pattern: /^\/(?:v1\/api|api\/v1)\/docs$/, replacement: "/docs" },
+    { pattern: /^\/(?:v1\/api|api\/v1)\/docs\/(.*)$/, replacement: "/docs/$1" },
+    { pattern: /^\/v1\/api\/(.*)$/, replacement: "/api/v1/$1" },
+    { pattern: /^\/(wallets|wagering|providers)(.*)$/, replacement: "/api/v1/$1$2" },
+  ];
+
   app.use((req: Request, _res: Response, next: NextFunction) => {
-    const url = req.url;
-    if (url === "/v1/api/docs" || url === "/api/v1/docs") {
-      req.url = "/docs";
-    } else if (url.startsWith("/v1/api/docs/") || url.startsWith("/api/v1/docs/")) {
-      req.url = url.replace(/^\/(?:v1\/api|api\/v1)\/docs/, "/docs");
-    } else if (url.startsWith("/v1/api/")) {
-      req.url = url.replace(/^\/v1\/api\//, "/api/v1/");
-    } else if (
-      url.startsWith("/wallets") ||
-      url.startsWith("/wagering") ||
-      url.startsWith("/providers")
-    ) {
-      req.url = `/api/v1${url}`;
+    const matchedRule = URL_REWRITE_RULES.find((rule) => rule.pattern.test(req.url));
+    if (matchedRule !== undefined) {
+      req.url = req.url.replace(matchedRule.pattern, matchedRule.replacement);
     }
     next();
   });
@@ -90,6 +88,9 @@ export async function bootstrap(): Promise<INestApplication> {
       "api/v1/docs/(.*)",
     ],
   });
+
+  const orm = app.get<MikroORM>(TOKENS.MIKRO_ORM);
+  await orm.getMigrator().up();
 
   const sqsRegistry = app.get<SqsQueueRegistry>(TOKENS.SQS_QUEUE_REGISTRY);
   await sqsRegistry.ensureQueues();
