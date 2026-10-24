@@ -1,11 +1,7 @@
-import { OutboxMessage } from "@domain/messaging/outbox-message";
+import type { ClaimOutboxBatchOptions } from "@application/ports/outbox-repository.types";
+import type { OutboxMessage } from "@domain/messaging/outbox-message";
 
-export interface ClaimOutboxBatchOptions {
-  readonly workerId: string;
-  readonly now: Date;
-  readonly leaseUntil: Date;
-  readonly limit: number;
-}
+export type { ClaimOutboxBatchOptions };
 
 export interface OutboxRepositoryPort {
   insert(message: OutboxMessage): Promise<void>;

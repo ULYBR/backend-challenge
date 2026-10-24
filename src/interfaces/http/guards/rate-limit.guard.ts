@@ -1,4 +1,5 @@
 import type { AuthenticatedHttpRequest } from "@interfaces/http/guards/provider-auth.guard";
+import type { ClientRateLimitState, RateLimitRule } from "@interfaces/http/guards/rate-limit.types";
 import {
   type CanActivate,
   type ExecutionContext,
@@ -7,11 +8,6 @@ import {
   Injectable,
 } from "@nestjs/common";
 import type { Response } from "express";
-
-interface RateLimitRule {
-  readonly windowMs: number;
-  readonly maxRequests: number;
-}
 
 const DEFAULT_RATE_LIMIT_RULE: RateLimitRule = {
   windowMs: 60_000,
@@ -30,10 +26,6 @@ const ROUTE_RATE_LIMIT_RULES: Readonly<Record<string, RateLimitRule>> = {
 };
 
 const EXEMPT_PATH_PREFIXES = ["/health", "/metrics", "/docs"] as const;
-
-interface ClientRateLimitState {
-  readonly timestamps: number[];
-}
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {

@@ -1,14 +1,9 @@
-import type {
-  AuthenticatedProviderPrincipalDto,
-  ProviderIdentityPort,
-} from "@application/ports/provider-identity.port";
+import type { ProviderIdentityPort } from "@application/ports/provider-identity.port";
 import { TOKENS } from "@application/ports/tokens";
+import type { AuthenticatedHttpRequest } from "@interfaces/http/http.types";
 import { type CanActivate, type ExecutionContext, Inject, Injectable } from "@nestjs/common";
-import type { Request } from "express";
 
-export interface AuthenticatedHttpRequest extends Request {
-  providerPrincipal?: AuthenticatedProviderPrincipalDto;
-}
+export type { AuthenticatedHttpRequest };
 
 const PUBLIC_PATH_PREFIXES = ["/health", "/metrics", "/docs"] as const;
 

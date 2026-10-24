@@ -1,23 +1,8 @@
 import { OutboxMessage } from "@domain/messaging/outbox-message";
+import type { OutboxMessageSqlRow } from "@infrastructure/persistence/persistence.types";
 import { OutboxMessageRecord } from "@infrastructure/persistence/schemas/outbox-message.schema";
 
-export interface OutboxMessageSqlRow {
-  readonly id: string;
-  readonly aggregate_type: string;
-  readonly aggregate_id: string;
-  readonly event_type: string;
-  readonly event_version: number;
-  readonly correlation_id: string;
-  readonly causation_id: string | null;
-  readonly payload: Record<string, unknown> | string;
-  readonly occurred_at: Date | string;
-  readonly attempts: number;
-  readonly next_attempt_at: Date | string;
-  readonly locked_until: Date | string | null;
-  readonly locked_by: string | null;
-  readonly published_at: Date | string | null;
-  readonly last_error: string | null;
-}
+export type { OutboxMessageSqlRow };
 
 export class OutboxMessageMapper {
   private constructor() {}

@@ -166,15 +166,18 @@ export class WagerTransactionsSqsConsumer implements OnModuleInit, OnApplication
       }
 
       const disposition = await this.processSingleMessage(sqsMessage, urls);
-      if (disposition === "ACK_TERMINAL") {
-        acknowledged += 1;
-      }
-      if (disposition === "PERMANENT_DLQ") {
-        movedToDlq += 1;
-      }
-      if (disposition === "RETRY_TRANSIENT") {
-        retriedTransient += 1;
-      }
+      const dispositionCounters: Record<ConsumerMessageDisposition, () => void> = {
+        ACK_TERMINAL: () => {
+          acknowledged += 1;
+        },
+        PERMANENT_DLQ: () => {
+          movedToDlq += 1;
+        },
+        RETRY_TRANSIENT: () => {
+          retriedTransient += 1;
+        },
+      };
+      dispositionCounters[disposition]();
     }
 
     return {

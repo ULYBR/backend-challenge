@@ -30,4 +30,6 @@ Processo: [ADR-0001](0001-registrar-decisoes-arquiteturais.md).
 | [0023](0023-adotar-prefixo-api-v1-e-documentacao-dual-redoc-swagger.md) | Adotar prefixo /api/v1 com compatibilidade reversa e documentação dual ReDoc e Swagger UI | Accepted | 10 |
 | [0024](0024-incluir-diagramas-de-fluxo-na-documentacao-openapi.md) | Incluir Diagramas de Fluxo e Sequência na Documentação OpenAPI | Accepted | 14 |
 | [0025](0025-auto-merge-dependabot-para-atualizacoes-seguras-sem-impacto-em-fluxo.md) | Auto-Merge do Dependabot para Atualizações Seguras sem Impacto em Fluxo | Accepted | 14 |
+| [0026](0026-trilha-de-auditoria-fiscalizatoria-via-s3-parquet-athena-e-endpoint-administrativo.md) | Trilha de Auditoria Fiscalizatória via S3 Parquet, AWS Athena e Endpoint Administrativo | Accepted | 15 |
+| [0027](0027-observabilidade-e-tracing-distribuido-com-opentelemetry-e-datadog.md) | Observabilidade e Tracing Distribuído Unificado com OpenTelemetry e Datadog | Accepted | 15 |
 

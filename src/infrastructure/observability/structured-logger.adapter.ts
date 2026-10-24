@@ -26,6 +26,13 @@ function sanitizePayload(payload: LogEventPayload, instanceId: string): Record<s
     ...ambient,
   };
 
+  if (ambient.traceId !== undefined) {
+    merged["dd.trace_id"] = ambient.traceId;
+  }
+  if (ambient.spanId !== undefined) {
+    merged["dd.span_id"] = ambient.spanId;
+  }
+
   for (const [key, value] of Object.entries(payload)) {
     if (!FORBIDDEN_FINANCIAL_KEYS.has(key) && value !== undefined) {
       merged[key] = value;
