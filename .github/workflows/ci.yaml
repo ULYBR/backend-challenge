@@ -46,7 +46,7 @@ jobs:
           echo "Commit signature audit completed."
 
       - name: Secret Scanning (Gitleaks)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
@@ -67,12 +67,12 @@ jobs:
           bun-version: latest
 
       - name: Setup Terraform CLI
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.9.0
 
       - name: Setup Helm CLI
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
         with:
           version: v3.16.0
 
